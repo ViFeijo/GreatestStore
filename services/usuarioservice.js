@@ -1,50 +1,49 @@
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const model = require('../models/usuariomodel');
-const JWT_SECRET = process.env.JWT_SECRET;
 
 async function criar(nome, email, senha) {
   const hash = await bcrypt.hash(senha, 10);
-  const usuario = {id: model.gerarId(), nome, email, senha: hash};
-  model.salvar(usuario);
-  return {id: usuario.id, nome, email};
+  const usuario = await model.salvar({ nome, email, senha: hash });
+  return { id: usuario.id, nome: usuario.nome, email: usuario.email };
 }
 
-function listartodos() {
-  return model.buscarTodos().map(({senha, ...resto}) => resto);
+async function listartodos() {
+  const usuarios = await model.buscarTodos();
+  return usuarios.map(({ senha, ...resto }) => resto);
 }
 
-function buscarPorId(id) {
-  return model.buscarPorId(id);
+async function buscarPorId(id) {
+  return await model.buscarPorId(id);
 }
 
 async function atualizar(id, dados) {
-  const index = model.buscarIndex(id);
-  if (index === -1) return null;
   if (dados.senha) {
     dados.senha = await bcrypt.hash(dados.senha, 10);
   }
-  const atualizado = model.atualizar(index, dados);
-  const {senha, ...semSenha} = atualizado;
+  const atualizado = await model.atualizar(id, dados);
+  if (!atualizado) return null;
+  const { senha, ...semSenha } = atualizado;
   return semSenha;
 }
 
-function deletar(id) {
-  const index = model.buscarIndex(id);
-  if (index === -1) return false;
-  model.deletar(index);
+async function deletar(id) {
+  const usuario = await model.buscarPorId(id);
+  if (!usuario) return false;
+  await model.deletar(id);
   return true;
 }
 
 async function login(email, senha) {
-  const usuario = model.buscarPorEmail(email);
+  const usuario = await model.buscarPorEmail(email);
   if (!usuario) return null;
   const senhaCorreta = await bcrypt.compare(senha, usuario.senha);
   if (!senhaCorreta) return null;
 
- const token = jwt.sign(//é a biblioteca que cria e valida os tokens JWT no Node.js.
+  const token = jwt.sign(
     { id: usuario.id, email: usuario.email, role: usuario.role },
-    'segredo123',
-    { expiresIn: '7d' }// medida de segurança gera um novo
+    process.env.JWT_SECRET,
+    { expiresIn: '7d' }
   );
   return { token };
 }
