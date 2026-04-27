@@ -1,39 +1,40 @@
-//uso de postgresql
+const pool = require('../db');
 
-let usuarios = [];
-let nextId = 1;
-
-function salvar(usuario) {
-  usuarios.push(usuario);
+async function salvar(usuario) {
+  const { nome, email, senha, role } = usuario;
+  const result = await pool.query(
+    'INSERT INTO usuarios (nome, email, senha, role) VALUES ($1, $2, $3, $4) RETURNING *',
+    [nome, email, senha, role || 'comprador']
+  );
+  return result.rows[0];
 }
 
-function buscarTodos() {
-  return usuarios;
+async function buscarTodos() {
+  const result = await pool.query('SELECT * FROM usuarios');
+  return result.rows;
 }
 
-function buscarPorId(id) {
-  return usuarios.find(u => u.id === id);
+async function buscarPorId(id) {
+  const result = await pool.query('SELECT * FROM usuarios WHERE id = $1', [id]);
+  return result.rows[0];
 }
 
-function buscarPorEmail(email) {
-  return usuarios.find(u => u.email === email);
+async function buscarPorEmail(email) {
+  const result = await pool.query('SELECT * FROM usuarios WHERE email = $1', [email]);
+  return result.rows[0];
 }
 
-function atualizar(index, dados) {
-  usuarios[index] = {...usuarios[index], ...dados};
-  return usuarios[index];
+async function atualizar(id, dados) {
+  const { nome, email, senha } = dados;
+  const result = await pool.query(
+    'UPDATE usuarios SET nome = $1, email = $2, senha = $3 WHERE id = $4 RETURNING *',
+    [nome, email, senha, id]
+  );
+  return result.rows[0];
 }
 
-function buscarIndex(id) {
-  return usuarios.findIndex(u => u.id === id);
+async function deletar(id) {
+  await pool.query('DELETE FROM usuarios WHERE id = $1', [id]);
 }
 
-function deletar(index) {
-  usuarios.splice(index, 1);
-}
-
-function gerarId() {
-  return nextId++;
-}
-
-module.exports = { salvar, buscarTodos, buscarPorId, buscarPorEmail, atualizar, buscarIndex, deletar, gerarId };
+module.exports = { salvar, buscarTodos, buscarPorId, buscarPorEmail, atualizar, deletar };
