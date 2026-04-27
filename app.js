@@ -1,11 +1,12 @@
-const express = require('express')
-const app = express()
-const port = 3030
+require('dotenv').config();
 
-app.get('/', (req, res) => {
-  res.send('Hello World!')
-})
+const express = require('express');
+const app = express();
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
-})
+app.use(express.json());
+
+app.use('/usuarios', require('./routes/usuarioRoutes'));
+
+app.listen(process.env.PORT, () => {
+  console.log(`Servidor rodando na porta ${port}`);
+});
