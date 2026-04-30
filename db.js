@@ -1,16 +1,11 @@
-require('dotenv').config();
-const { Pool } = require('pg');
+const { Pool } = require('pg')
+require('dotenv').config()
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false } // necessário para o Supabase
-});
-
-module.exports = pool;
-pool.query('SELECT NOW()', (err, res) => {
-  if (err) {
-    console.log('Erro ao conectar:', err);
-  } else {
-    console.log('Conectado ao Supabase!', res.rows);
-  }
-});
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  port: 5432,
+  ssl: { rejectUnauthorized: false } 
+})
