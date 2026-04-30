@@ -1,15 +1,19 @@
 {
     "sqltools.connections": [
         {
+            "pgOptions": {
+                "ssl": {
+                    "rejectUnauthorized": false
+                }
+            },
             "ssh": "Disabled",
             "previewLimit": 50,
-            "server": "localhost",
+            "server": "aws-1-us-east-1.pooler.supabase.com",
             "port": 5432,
             "driver": "PostgreSQL",
-            "name": "dev_env",
-            "group": "group4",
-            "database": "ecommerce",
-            "username": "dev_mandachuva"
+            "name": "Teste",
+            "database": "postgres",
+            "username": "postgres.khhheeujdafdrzbmeqks"
         }
     ]
 }
