@@ -1,0 +1,22 @@
+@import "tailwindcss";
+* {
+  box-sizing: border-box;
+  color: #fff;
+}
+body {
+  margin: 0;
+  padding: 0;
+}
+header {
+    background-color: #7B1A1A;
+}
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+}
+#barra {
+    background-color: #4A0D0D;
+    padding: 0.5rem;
+}
