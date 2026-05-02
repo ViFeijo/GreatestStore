@@ -8,12 +8,12 @@
             },
             "ssh": "Disabled",
             "previewLimit": 50,
-            "server": "aws-1-us-east-1.pooler.supabase.com",
+            "server": "aws-1-sa-east-1.pooler.supabase.com",
             "port": 5432,
             "driver": "PostgreSQL",
-            "name": "Teste",
+            "name": "Greatest Store",
             "database": "postgres",
-            "username": "postgres.khhheeujdafdrzbmeqks"
+            "username": "postgres.brqcyvmsflpddaqxqjjl"
         }
     ]
 }

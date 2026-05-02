@@ -11,9 +11,9 @@
             "server": "aws-1-sa-east-1.pooler.supabase.com",
             "port": 5432,
             "driver": "PostgreSQL",
-            "name": "Greatest Store",
-            "database": "postgres",
-            "username": "postgres.brqcyvmsflpddaqxqjjl"
+            "name": "OutraMaquina",
+            "username": "postgres.brqcyvmsflpddaqxqjjl",
+            "database": "postgres"
         }
     ]
 }
