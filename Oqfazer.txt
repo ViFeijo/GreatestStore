@@ -1,0 +1,55 @@
+1. App.js (O Coração)
+É onde tudo começa. Nele, você não escreve lógica, apenas configura o ambiente:
+
+Importe o Express, CORS e Dotenv.
+
+Configure os Middlewares globais (para o servidor entender JSON).
+
+Declare as Rotas principais (ex: /produtos, /usuarios, /vendedores).
+
+Inicie o servidor na porta desejada.
+
+2. Routes (As Portas de Entrada)
+Crie arquivos separados para cada tema (ex: produtoRoutes.js, usuarioRoutes.js). Em cada um, defina os caminhos:
+
+Produtos: Rotas para listar todos, ver um específico, criar, editar e deletar.
+
+Usuários: Rotas para cadastro e login.
+
+Vendedores: Rota para transformar um usuário em vendedor (vincular CNPJ).
+
+Carrinho/Favoritos: Rotas para adicionar, remover e listar itens.
+
+3. Controllers (Os Gerentes)
+O Controller recebe o pedido da rota e decide o que fazer. Ele chama o Service e devolve a resposta (sucesso ou erro):
+
+ProdutoController: Funções como criarProduto, listarPeloId ou aplicarDesconto.
+
+VendaController: Funções para fecharPedido, calcularFrete e aplicarCupom.
+
+AvaliacaoController: Funções para enviarNotaProduto e enviarNotaFrete.
+
+4. Services (A Inteligência de Negócio)
+Esta é a camada mais importante. É aqui que você faz os cálculos e validações antes de tocar no banco de dados:
+
+FreteService: Lógica para consultar o preço da transportadora.
+
+EstoqueService: Verificar se ainda tem o produto antes de vender.
+
+CupomService: Validar se o cupom expirou ou se atingiu o limite de uso.
+
+DescontoService: Calcular o preço "De/Por" com base no evento ativo.
+
+5. Middlewares (Os Seguranças)
+Eles ficam no meio do caminho entre a Rota e o Controller para verificar regras:
+
+AuthMiddleware: Verifica se o usuário está logado (valida o Token/JWT).
+
+VendedorMiddleware: Garante que apenas usuários com CNPJ cadastrado possam criar produtos.
+
+ValidacaoMiddleware: Checa se o e-mail é válido ou se o CNPJ tem o número correto de dígitos antes de mandar para o banco.
+
+6. Models (A Ponte com o Banco)
+No seu caso (usando Supabase), o "Model" é onde você usa o supabaseClient para falar com as tabelas que criamos:
+
+Aqui você escreve as funções de banco: insert em produtos, select em categorias, update no status do frete.
