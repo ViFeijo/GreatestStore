@@ -9,3 +9,6 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
+
+//import (ES Modules) uso 
+// Dentro de supabaseClient.js ou onde você configurou o Supabase
