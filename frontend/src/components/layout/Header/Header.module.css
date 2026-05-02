@@ -1,0 +1,168 @@
+.layout {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+.topBar {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    background-color: #7B1A1A;
+    height: 67px; /* six seven */
+}
+.header {
+    flex: 1;                  
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 0 1.5rem;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+    padding: 0.5rem;
+    border-radius: 8px;
+}
+
+.logoGrestest {
+    color: white;   
+    font-size: 1.3rem;
+    font-weight: 800;
+    display: block;
+}
+
+.logoStore {
+    color: #c8a96e;
+    font-size: 0.7rem;
+    letter-spacing: 3px;
+}
+.cep {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: white;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.cepIcon {
+    color: #c8a96e;
+    font-size: 1.2rem;
+}
+.searchBar {
+    flex: 1;                 
+    display: flex;
+    align-items: center;
+    background-color: #f9e8e8;
+    border-radius: 8px;
+    overflow: hidden;
+    min-width: 0;
+}
+
+.searchInput {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+    color: #333;
+    outline: none;
+}
+
+.searchInput::placeholder {
+    color: #999;
+}
+
+.searchButton {
+    background: transparent;
+    border: none;
+    padding: 0.6rem 1rem;
+    cursor: pointer;
+    color: #7a1010;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+}
+.anunciarButton {
+    background-color: #e8940a;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.anunciarButton:hover {
+    background-color: #d4840a;
+}
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.iconButton {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+}
+.iconLabel {
+    font-size: 0.65rem;
+    color: white;
+    text-decoration: none;
+}
+.carrinhoButton {
+    background-color: #f9e8e8;
+    border: none;
+    padding: 0.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    color: #7a1010;
+    font-size: 1.5rem;
+    height: 100%;
+}
+
+.carrinhoLabel {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #7a1010;
+    text-decoration: none !important;
+}
+
+.subHeader {
+    background-color: #6b0e0e;
+    padding: 0.4rem 1.5rem;
+}
+
+.todosDepartaments {
+    background: transparent;
+    border: 1px solid white;
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.todosDepartaments:hover {
+    background-color: rgba(255,255,255,0.1);
+}
