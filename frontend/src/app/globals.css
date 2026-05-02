@@ -1,4 +1,4 @@
-
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap');
 * {
     margin: 0;
     padding: 0;
@@ -11,4 +11,5 @@ html, body {
     padding: 0;
     width: 100%;
     background-color: green;
+    font-family: 'Open Sans', sans-serif; /*fonte para usar (a mesma do figma)*/
 }
