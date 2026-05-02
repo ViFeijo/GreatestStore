@@ -3,5 +3,8 @@
     "@ljharb/tsconfig": "^0.3.2",
     "@types/node": "^25.6.0",
     "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.105.1"
   }
 }
