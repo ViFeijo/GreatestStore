@@ -21,7 +21,7 @@ export function SideBarDir({
 }: SideBarDirProps) {
   return (
     // A classe sticky faz ela ficar fixa ao rolar a página
-    <aside className="w-full lg:max-w-[400px] shrink-0 sticky top-24 flex flex-col gap-4">
+    <aside className="w-full lg:max-w-[400px] shrink-0 sticky top-[160px] flex flex-col gap-4 z-40">
       
       {/* Banner Promocional do Topo da Sidebar (se existir) */}
       {urlBannerPromocional && (

@@ -24,7 +24,18 @@ export function CompraBox({
         <div className="bg-white rounded-lg p-6 sticky top-20 space-y-6 shadow-sm border border-gray-200">
             {/* Preço */}
             <div>
-                <div className="flex items-baseline gap-3 mb-2">
+
+                <div className="flex items-center gap-2">
+                    <span className="bg-red-100 text-red-600 px-3 py-1 rounded font-bold">
+                        -{valores.porcentagemDesconto}%
+                    </span>
+                    {valores.descontoPix > 0 && (
+                        <span className="bg-green-100 text-green-700 px-3 py-1 rounded">
+                            PIX -{valores.descontoPix}%
+                        </span>
+                    )}
+                </div>
+                <div className="flex items-baseline gap-3 py-2">
                     <span className="text-3xl font-bold text-red-600">
                         R$ {valores.precoAtual.toFixed(2).replace(".", ",")}
                     </span>
@@ -34,16 +45,7 @@ export function CompraBox({
                         </span>
                     )}
                 </div>
-                <div className="flex items-center gap-2">
-                    <span className="bg-red-100 text-red-600 px-3 py-1 rounded font-bold">
-                        -{valores.porcentagemDesconto}%
-                    </span>
-                    {valores.descontoPix > 0 && (
-                        <span className="bg-green-100 text-green-700 px-3 py-1 rounded text-sm">
-                            PIX -{valores.descontoPix}%
-                        </span>
-                    )}
-                </div>
+                
             </div>
 
             {/* Parcelamento */}
