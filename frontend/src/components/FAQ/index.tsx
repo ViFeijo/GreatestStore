@@ -4,10 +4,10 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { FaqItem } from "@/types" // Importe a tipagem
+import { PerguntaFrequente } from "@/types" // Importe a tipagem
 
 // Agora ele recebe a prop "faqs" que é um array do tipo FaqItem
-export function ProdutoFAQ({ faqs }: { faqs: FaqItem[] }) {
+export function ProdutoFAQ({ faqs }: { faqs: PerguntaFrequente[] }) {
   if (!faqs || faqs.length === 0) return null; // Não renderiza se não tiver FAQ
 
   return (
@@ -17,10 +17,10 @@ export function ProdutoFAQ({ faqs }: { faqs: FaqItem[] }) {
         {faqs.map((faq, index) => (
           <AccordionItem key={index} value={`item-${index}`}>
             <AccordionTrigger className="text-left font-medium">
-              {faq.question}
+              {faq.pergunta}
             </AccordionTrigger>
             <AccordionContent className="text-gray-600">
-              {faq.answer}
+              {faq.resposta}
             </AccordionContent>
           </AccordionItem>
         ))}

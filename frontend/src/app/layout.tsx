@@ -33,7 +33,7 @@ export default function RootLayout({
       lang="pt-BR"
       className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, openSans.variable)}
     >
-      <body className="min-h-full flex flex-col font-sans">
+      <body className="min-h-full flex flex-col font-sans pt-[67px]">
         <Header />
         {children}
       </body>
