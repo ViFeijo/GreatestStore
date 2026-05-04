@@ -1,15 +1,13 @@
-const router = require('express').Router();
-const usuarioController = require('../controllers/usuariocontroller');
-const { verifyToken } = require('../middlewares/auth');
+const express = require('express');
+const router = express.Router();
+const usuarioController = require('../controllers/usuarioController');
+const autenticar = require('../middlewares/auth');
 const { checkRole } = require('../middlewares/rules');
 
-router.post('/', usuarioController.criar);
+router.post('/registrar', usuarioController.registrar);
 router.post('/login', usuarioController.login);
-router.get('/', verifyToken, checkRole('admin'), usuarioController.listartodos);
-router.get('/:id', verifyToken, usuarioController.buscarPorId);
-router.get('/:id/carrinho', verifyToken, usuarioController.verCarrinho);
-router.post('/:id/carrinho', verifyToken, usuarioController.adicionarCarrinho);
-router.put('/:id', verifyToken, usuarioController.atualizar);
-router.delete('/:id', verifyToken, checkRole('admin'), usuarioController.deletar);
+router.get('/perfil', autenticar, usuarioController.perfil);
+router.put('/perfil', autenticar, usuarioController.atualizar);
+router.delete('/perfil', autenticar, checkRole('admin'), usuarioController.deletar);
 
 module.exports = router;

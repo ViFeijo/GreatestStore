@@ -3,9 +3,10 @@ const express = require('express');
 const app = express();
 
 app.use(express.json());
-app.use('/usuarios', require('./routes/usuariorote'));
-app.use('/produtos', require('./routes/produtoRoutes'));
+
+const usuarioRoutes = require('./routes/usuarioRoutes');
+app.use('/usuarios', usuarioRoutes);
 
 app.listen(process.env.PORT, () => {
-  console.log(`Servidor rodando na porta ${port}`);
+  console.log(`Servidor rodando na porta ${process.env.PORT}`);
 });
