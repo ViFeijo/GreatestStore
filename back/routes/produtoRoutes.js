@@ -1,12 +1,13 @@
-const router = require('express').Router();
-const produtoController = require('../controllers/produtocontroller');
-const { verifyToken } = require('../middlewares/auth');
+const express = require('express');
+const router = express.Router();
+const produtoController = require('../controllers/produtoController');
+const autenticar = require('../middlewares/auth');
 const { checkRole } = require('../middlewares/rules');
 
 router.get('/', produtoController.listartodos);
 router.get('/:id', produtoController.buscarPorId);
-router.post('/', verifyToken, checkRole('vendedor'), produtoController.criar);
-router.put('/:id', verifyToken, checkRole('vendedor'), produtoController.atualizar);
-router.delete('/:id', verifyToken, checkRole('vendedor'), produtoController.deletar);
+router.post('/', autenticar, checkRole('vendedor'), produtoController.criar);
+router.put('/:id', autenticar, checkRole('vendedor'), produtoController.atualizar);
+router.delete('/:id', autenticar, checkRole('vendedor'), produtoController.deletar);
 
 module.exports = router;
