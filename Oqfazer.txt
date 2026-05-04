@@ -53,3 +53,5 @@ ValidacaoMiddleware: Checa se o e-mail é válido ou se o CNPJ tem o número cor
 No seu caso (usando Supabase), o "Model" é onde você usa o supabaseClient para falar com as tabelas que criamos:
 
 Aqui você escreve as funções de banco: insert em produtos, select em categorias, update no status do frete.
+
+git fetch origin, git rebase origin/featA
