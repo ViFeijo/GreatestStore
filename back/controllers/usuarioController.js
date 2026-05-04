@@ -93,4 +93,13 @@ async function deletar(req, res) {
   }
 }
 
-module.exports = { registrar, login, perfil, atualizar, deletar };
+async function listarTodos(req, res) {
+  try {
+    const usuarios = await Usuario.buscarTodos();
+    return res.json(usuarios);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+module.exports = { registrar, login, perfil, atualizar, deletar, listarTodos };

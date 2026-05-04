@@ -15,10 +15,14 @@ async function buscarPorEmail(email) {
 
 async function buscarPorId(id) {
   const result = await pool.query(
-    'SELECT id, nome, email, role, criado_em FROM usuarios WHERE id = $1',
-    [id]
+    'SELECT id, nome, email, role, criado_em FROM usuarios WHERE id = $1', [id]
   );
   return result.rows[0];
+}
+
+async function buscarTodos() {
+  const result = await pool.query('SELECT id, nome, email, role, criado_em FROM usuarios');
+  return result.rows;
 }
 
 async function atualizar(id, nome, email) {
@@ -34,4 +38,4 @@ async function deletar(id) {
   return result.rows[0];
 }
 
-module.exports = { criar, buscarPorEmail, buscarPorId, atualizar, deletar };
+module.exports = { criar, buscarPorEmail, buscarPorId, buscarTodos, atualizar, deletar };
