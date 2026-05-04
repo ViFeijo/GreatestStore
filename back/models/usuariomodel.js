@@ -1,4 +1,4 @@
-const pool = require('../db');
+const pool = require('../config/db');
 
 async function salvar(usuario) {
   const { nome, email, senha, role } = usuario;
