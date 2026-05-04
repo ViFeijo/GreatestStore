@@ -1,88 +1,96 @@
-const service = require('../services/usuarioservice');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const Usuario = require('../models/usuarioModel');
 
-async function criar(req, res) {
+async function registrar(req, res) {
   try {
-    const { nome, email, senha } = req.body;
-    const novo = await service.criar(nome, email, senha);
-    res.status(201).json(novo);
-  } catch (error) {
-    res.status(400).json({ erro: 'Erro ao criar usuário. Verifique se o e-mail já existe.' });
-  }
-}
+    const { nome, email, senha, role } = req.body;
 
-async function listartodos(req, res) {
-  try {
-    const usuarios = await service.listartodos();
-    res.json(usuarios);
-  } catch (error) {
-    res.status(500).json({ erro: 'Erro interno no servidor' });
-  }
-}
-
-async function buscarPorId(req, res) {
-  try {
-    const idSolicitado = Number(req.params.id);
-    const usuarioLogado = req.usuario; // Garanta que no verifyToken você usou req.usuario
-
-    if (usuarioLogado.id !== idSolicitado && usuarioLogado.role !== 'admin') {
-      return res.status(403).json({ erro: 'Acesso negado: você não pode ver os dados de outro usuário' });
+    if (!nome || !email || !senha) {
+      return res.status(400).json({ error: 'Nome, email e senha são obrigatórios' });
     }
 
-    const usuario = await service.buscarPorId(idSolicitado);  
-    if (!usuario) {
-      return res.status(404).json({ erro: 'Usuário não encontrado' });
+    const usuarioExistente = await Usuario.buscarPorEmail(email);
+    if (usuarioExistente) {
+      return res.status(409).json({ error: 'Email já cadastrado' });
     }
 
-    const { senha, ...semSenha } = usuario;
-    res.json(semSenha);
-  } catch (error) {
-    res.status(500).json({ erro: 'Erro ao buscar usuário' });
-  }
-}
+    const senhaHash = await bcrypt.hash(senha, 10);
+    const usuario = await Usuario.criar(nome, email, senhaHash, role);
 
-async function atualizar(req, res) {
-  try {
-    const id = Number(req.params.id);
-    const usuarioLogado = req.usuario;
-    if (usuarioLogado.id !== id && usuarioLogado.role !== 'admin') {
-      return res.status(403).json({ erro: 'Acesso negado' });
-    }
-
-    const atualizado = await service.atualizar(id, req.body);
-    if (!atualizado) {
-      return res.status(404).json({ erro: 'Não encontrado' });
-    }
-    res.json(atualizado);
-  } catch (error) {
-    res.status(400).json({ erro: 'Erro ao atualizar dados' });
-  }
-}
-
-async function deletar(req, res) {
-  try {
-    const ok = await service.deletar(Number(req.params.id));
-    if (!ok) {
-      return res.status(404).json({ erro: 'Não encontrado' });
-    }
-    res.status(204).send();
-  } catch (error) {
-    res.status(500).json({ erro: 'Erro ao deletar usuário' });
+    return res.status(201).json(usuario);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
   }
 }
 
 async function login(req, res) {
   try {
     const { email, senha } = req.body;
-    const resultado = await service.login(email, senha);
-    
-    if (!resultado) {
-      return res.status(401).json({ erro: 'E-mail ou senha inválidos' });
+
+    if (!email || !senha) {
+      return res.status(400).json({ error: 'Email e senha são obrigatórios' });
     }
-    
-    res.json(resultado);
-  } catch (error) {
-    res.status(500).json({ erro: 'Erro ao processar login' });
+
+    const usuario = await Usuario.buscarPorEmail(email);
+    if (!usuario) {
+      return res.status(401).json({ error: 'Email ou senha inválidos' });
+    }
+
+    const senhaValida = await bcrypt.compare(senha, usuario.senha);
+    if (!senhaValida) {
+      return res.status(401).json({ error: 'Email ou senha inválidos' });
+    }
+
+    const token = jwt.sign(
+      { id: usuario.id, email: usuario.email, role: usuario.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    return res.json({
+      token,
+      usuario: {
+        id: usuario.id,
+        nome: usuario.nome,
+        email: usuario.email,
+        role: usuario.role
+      }
+    });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
   }
 }
 
-module.exports = { criar, listartodos, buscarPorId, atualizar, deletar, login };
+async function perfil(req, res) {
+  try {
+    const usuario = await Usuario.buscarPorId(req.usuarioId);
+    if (!usuario) return res.status(404).json({ error: 'Usuário não encontrado' });
+    return res.json(usuario);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+async function atualizar(req, res) {
+  try {
+    const { nome, email } = req.body;
+    const usuario = await Usuario.atualizar(req.usuarioId, nome, email);
+    if (!usuario) return res.status(404).json({ error: 'Usuário não encontrado' });
+    return res.json(usuario);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+async function deletar(req, res) {
+  try {
+    const usuario = await Usuario.deletar(req.usuarioId);
+    if (!usuario) return res.status(404).json({ error: 'Usuário não encontrado' });
+    return res.json({ mensagem: 'Conta deletada com sucesso' });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+module.exports = { registrar, login, perfil, atualizar, deletar };

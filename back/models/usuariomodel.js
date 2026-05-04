@@ -1,21 +1,10 @@
 const pool = require('../config/db');
 
-async function salvar(usuario) {
-  const { nome, email, senha, role } = usuario;
+async function criar(nome, email, senhaHash, role = 'cliente') {
   const result = await pool.query(
-    'INSERT INTO usuarios (nome, email, senha, role) VALUES ($1, $2, $3, $4) RETURNING *',
-    [nome, email, senha, role || 'comprador']
+    'INSERT INTO usuarios (nome, email, senha, role) VALUES ($1, $2, $3, $4) RETURNING id, nome, email, role, criado_em',
+    [nome, email, senhaHash, role]
   );
-  return result.rows[0];
-}
-
-async function buscarTodos() {
-  const result = await pool.query('SELECT * FROM usuarios');
-  return result.rows;
-}
-
-async function buscarPorId(id) {
-  const result = await pool.query('SELECT * FROM usuarios WHERE id = $1', [id]);
   return result.rows[0];
 }
 
@@ -24,17 +13,25 @@ async function buscarPorEmail(email) {
   return result.rows[0];
 }
 
-async function atualizar(id, dados) {
-  const { nome, email, senha } = dados;
+async function buscarPorId(id) {
   const result = await pool.query(
-    'UPDATE usuarios SET nome = $1, email = $2, senha = $3 WHERE id = $4 RETURNING *',
-    [nome, email, senha, id]
+    'SELECT id, nome, email, role, criado_em FROM usuarios WHERE id = $1',
+    [id]
+  );
+  return result.rows[0];
+}
+
+async function atualizar(id, nome, email) {
+  const result = await pool.query(
+    'UPDATE usuarios SET nome=$1, email=$2 WHERE id=$3 RETURNING id, nome, email, role',
+    [nome, email, id]
   );
   return result.rows[0];
 }
 
 async function deletar(id) {
-  await pool.query('DELETE FROM usuarios WHERE id = $1', [id]);
+  const result = await pool.query('DELETE FROM usuarios WHERE id=$1 RETURNING *', [id]);
+  return result.rows[0];
 }
 
-module.exports = { salvar, buscarTodos, buscarPorId, buscarPorEmail, atualizar, deletar };
+module.exports = { criar, buscarPorEmail, buscarPorId, atualizar, deletar };
