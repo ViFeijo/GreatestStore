@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const usuarioController = require('../controllers/usuariocontroller');
-const adminController = require('../controllers/admincontroller'); // Se existir
+const adminController = require('../controllers/admincontroller'); 
 const { verifyToken } = require('../middlewares/auth');
 const { checkRole } = require('../middlewares/rules');
 

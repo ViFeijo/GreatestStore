@@ -3,7 +3,7 @@ CREATE TABLE usuarios (
     nome TEXT NOT NULL,
     email TEXT UNIQUE NOT NULL,
     senha TEXT NOT NULL,
-    criado_em TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    criado_em TIMESTAMP WITH TIME ZONE DEFAULT NOW()b550
 );
 
 CREATE TABLE vendedores (
@@ -12,9 +12,10 @@ CREATE TABLE vendedores (
     nome_fantasia TEXT NOT NULL,
     razao_social TEXT NOT NULL,
     cnpj TEXT UNIQUE NOT NULL,
+    gmail TEXT UNIQUE NOT NULL,
     criado_em TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-
+ 
 CREATE TABLE categorias (
     id SERIAL PRIMARY KEY,
     nome TEXT NOT NULL UNIQUE
