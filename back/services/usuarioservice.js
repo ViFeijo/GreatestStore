@@ -1,7 +1,7 @@
 const pool = require('../config/db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const model = require('../models/usuariomodel');
+const model = require('../models/usuarioModel');
 
 async function criar(nome, email, senha) {
   const hash = await bcrypt.hash(senha, 10);
