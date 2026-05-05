@@ -5,7 +5,6 @@ const autenticar = require('../middlewares/auth');
 const { checkRole } = require('../middlewares/rules');
 
 router.post('/registrar', usuarioController.registrar);
-router.post('/login', usuarioController.login);
 router.get('/perfil', autenticar, usuarioController.perfil);
 router.put('/perfil', autenticar, usuarioController.atualizar);
 router.delete('/perfil', autenticar, usuarioController.deletar);
