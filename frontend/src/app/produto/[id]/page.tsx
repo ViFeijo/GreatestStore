@@ -66,6 +66,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                         </h2>
                         <div className="text-gray-700 whitespace-pre-line leading-relaxed">
                             {produto.descricaoCompleta}
+                            <img src="https://www.kabum.com.br/conteudo/descricao/952751/img/kv.jpg" alt="" loading="lazy"></img>
                         </div>
                     </div>
                     <div className="space-y-4 mt-6">
