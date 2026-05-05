@@ -1,15 +1,13 @@
-const router = require('express').Router();
-const vendedorController = require('../controllers/vendedorcontroller');
-const { verifyToken } = require('../middlewares/auth');
-const { checkRole }   = require('../middlewares/rules');
+const express = require('express');
+const router = express.Router();
+const vendedorController = require('../controllers/vendedorController');
+const autenticar = require('../middlewares/auth');
+const { checkRole } = require('../middlewares/rules');
 
-router.post('/', vendedorController.criar);
-router.post('/registrar', vendedorController.registrar);
-router.post('/meus-produtos', verifyToken, checkRole('vendedor'), produtoController.criar);
-router.get('/dashboard', verifyToken, checkRole('vendedor'), vendedorController.dashboard);
-router.get('/', vendedorController.listartodos);
-router.get('/:id', vendedorController.buscarPorId);
-router.put('/:id', verifyToken, checkRole('admin'), vendedorController.atualizar);
-router.delete('/:id', verifyToken, checkRole('admin'), vendedorController.deletar);
+router.get('/perfil', autenticar, checkRole('vendedor'), vendedorController.perfil);
+router.put('/perfil/completar', autenticar, checkRole('vendedor'), vendedorController.completarPerfil);
+router.put('/perfil', autenticar, checkRole('vendedor'), vendedorController.atualizar);
+router.delete('/perfil', autenticar, checkRole('vendedor'), vendedorController.deletar);
+router.get('/todos', autenticar, checkRole('admin'), vendedorController.listartodos);
 
 module.exports = router;
