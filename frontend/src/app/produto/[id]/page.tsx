@@ -10,7 +10,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     const produto = MOCK_PRODUTO;
 
     return (
-        <main className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px py-8 ">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
                 {/* Coluna Esquerda - Carrossel de Imagens (1 coluna) */}

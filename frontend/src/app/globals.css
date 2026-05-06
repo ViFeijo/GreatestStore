@@ -2,8 +2,32 @@
 
 @import "tailwindcss";
 
-body {
+:root {
+  /* Cores Principais */
+  --red-primary: #7b1a1a;       /* Vermelho (GreatestStore) */
+  --red-secondary: #4a0d0d;
+  --yellow-primary: #fbbf24;     /* Amarelo/Ouro */
+  --color-accent: #1f2937;        /* Cinza Escuro */
+  
+  /* Cores Base */
+  --fundo: #f0e9e6;
+  --branco: #ffffff;    /* cor de fundo */
+  --preto: #000000;    /* Preto */
+  --color-border: #e5e7eb;        /* Cinza Claro */
+  
+  /* Cores de Estado */
+  --color-success: #10b981;       /* Verde */
+  --color-error: #ef4444;         /* Vermelho */
+  --color-warning: #f59e0b;       /* Laranja */
+  --color-info: #3b82f6;          /* Azul */
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  background-color: var(--fundo);
   margin: 0;
   padding: 0;
   font-family: 'Open Sans', sans-serif;
 }
+

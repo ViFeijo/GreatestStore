@@ -21,7 +21,7 @@ export function CompraBox({
     const [quantidade, setQuantidade] = useState(1);
 
     return (
-        <div className="bg-white rounded-lg p-6 sticky top-20 space-y-6 shadow-sm border border-gray-200">
+        <div className="bg-white rounded-lg p-6 space-y-6 shadow-sm border border-gray-200">
             {/* Preço */}
             <div>
 
