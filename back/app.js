@@ -36,6 +36,7 @@ app.use('/notificacoes', notificacaoRoutes);
 app.use('/categorias', categoriaRoutes);
 app.use('/subcategorias', subcategoriaRoutes);
 app.use('/avaliacoes', avaliacaoRoutes);
+app.use('/favoritos', favoritosRoutes);
 
 app.listen(process.env.PORT, () => {
   console.log(`Servidor rodando na porta ${process.env.PORT}`);
