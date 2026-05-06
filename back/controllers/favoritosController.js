@@ -39,7 +39,9 @@ async function remover(req, res) {
   try {
     const { produto_id } = req.params;
     const favorito = await Favoritos.remover(req.usuarioId, produto_id);
-    if (!favorito) return res.status(404).json({ error: 'Favorito não encontrado' });
+    if (!favorito) {
+      return res.status(404).json({ error: 'Favorito não encontrado' });
+    }
     return res.json({ mensagem: 'Produto removido dos favoritos' });
   } catch (err) {
     return res.status(500).json({ error: err.message });

@@ -3,7 +3,9 @@ const pool = require('../config/db');
 
 async function uploadProduto(req, res) {
   try {
-    if (!req.file) return res.status(400).json({ error: 'Nenhuma imagem enviada' });
+    if (!req.file) {
+      return res.status(400).json({ error: 'Nenhuma imagem enviada' });
+    }
 
     const { produto_id } = req.params;
     const { is_principal, ordem } = req.body;
@@ -14,7 +16,9 @@ async function uploadProduto(req, res) {
       .from('produtos')
       .upload(path, req.file.buffer, { contentType: req.file.mimetype });
 
-    if (error) return res.status(500).json({ error: error.message });
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
 
     const { data } = supabase.storage.from('produtos').getPublicUrl(path);
     const url = data.publicUrl;

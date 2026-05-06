@@ -23,7 +23,9 @@ async function completarPerfil(req, res) {
     }
 
     const vendedor = await Vendedor.completarPerfil(req.usuarioId, nome_fantasia, razao_social);
-    if (!vendedor) return res.status(404).json({ error: 'Vendedor não encontrado' });
+    if (!vendedor) {
+      return res.status(404).json({ error: 'Vendedor não encontrado' });
+    }
     return res.json(vendedor);
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -33,7 +35,9 @@ async function completarPerfil(req, res) {
 async function atualizar(req, res) {
   try {
     const vendedor = await Vendedor.atualizar(req.usuarioId, req.body);
-    if (!vendedor) return res.status(404).json({ error: 'Vendedor não encontrado' });
+    if (!vendedor) {
+      return res.status(404).json({ error: 'Vendedor não encontrado' });
+    }
     return res.json(vendedor);
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -52,7 +56,9 @@ async function listartodos(req, res) {
 async function deletar(req, res) {
   try {
     const vendedor = await Vendedor.deletar(req.usuarioId);
-    if (!vendedor) return res.status(404).json({ error: 'Vendedor não encontrado' });
+    if (!vendedor) {
+      return res.status(404).json({ error: 'Vendedor não encontrado' });
+    }
     return res.json({ mensagem: 'Vendedor deletado com sucesso' });
   } catch (err) {
     return res.status(500).json({ error: err.message });

@@ -35,7 +35,9 @@ async function listarPorCategoria(req, res) {
 async function buscarPorId(req, res) {
   try {
     const subcategoria = await Subcategoria.buscarPorId(req.params.id);
-    if (!subcategoria) return res.status(404).json({ error: 'Subcategoria não encontrada' });
+    if (!subcategoria) {
+      return res.status(404).json({ error: 'Subcategoria não encontrada' });
+    }
     return res.json(subcategoria);
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -46,7 +48,9 @@ async function atualizar(req, res) {
   try {
     const { nome } = req.body;
     const subcategoria = await Subcategoria.atualizar(req.params.id, nome);
-    if (!subcategoria) return res.status(404).json({ error: 'Subcategoria não encontrada' });
+    if (!subcategoria) {
+      return res.status(404).json({ error: 'Subcategoria não encontrada' });
+    }
     return res.json(subcategoria);
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -56,7 +60,9 @@ async function atualizar(req, res) {
 async function deletar(req, res) {
   try {
     const subcategoria = await Subcategoria.deletar(req.params.id);
-    if (!subcategoria) return res.status(404).json({ error: 'Subcategoria não encontrada' });
+    if (!subcategoria) {
+      return res.status(404).json({ error: 'Subcategoria não encontrada' });
+    }
     return res.json({ mensagem: 'Subcategoria deletada com sucesso' });
   } catch (err) {
     return res.status(500).json({ error: err.message });

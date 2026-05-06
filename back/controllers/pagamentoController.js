@@ -4,7 +4,9 @@ const Pedido = require('../models/pedidoModel');
 async function buscarPorPedido(req, res) {
   try {
     const pagamento = await Pagamento.buscarPorPedido(req.params.pedido_id);
-    if (!pagamento) return res.status(404).json({ error: 'Pagamento não encontrado' });
+    if (!pagamento) {
+      return res.status(404).json({ error: 'Pagamento não encontrado' });
+    }
     return res.json(pagamento);
   } catch (err) {
     return res.status(500).json({ error: err.message });
