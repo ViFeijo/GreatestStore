@@ -20,6 +20,7 @@ const categoriaRoutes = require('./routes/categoriaRoutes');
 const subcategoriaRoutes = require('./routes/subcategoriaRoutes');
 const avaliacaoRoutes = require('./routes/avaliacaoRoutes');
 const favoritosRoutes = require('./routes/favoritosRoutes');
+const pagamentoRoutes = require('./routes/pagamentoRoutes');
 
 app.use('/auth', authRoutes);
 app.use('/usuarios', usuarioRoutes);
@@ -37,6 +38,7 @@ app.use('/categorias', categoriaRoutes);
 app.use('/subcategorias', subcategoriaRoutes);
 app.use('/avaliacoes', avaliacaoRoutes);
 app.use('/favoritos', favoritosRoutes);
+app.use('/pagamento', pagamentoRoutes);
 
 app.listen(process.env.PORT, () => {
   console.log(`Servidor rodando na porta ${process.env.PORT}`);
