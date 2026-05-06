@@ -4,6 +4,9 @@ const produtoController = require('../controllers/produtoController');
 const autenticar = require('../middlewares/auth');
 const { checkRole } = require('../middlewares/rules');
 
+router.get('/filtrar', produtoController.buscarComFiltros);
+router.get('/subcategoria/:subcategoria_id', produtoController.buscarPorSubcategoria);
+router.get('/filtrar', produtoController.buscarComFiltros);
 router.get('/carrossel', produtoController.carrossel);
 router.get('/carrossel/oferta', produtoController.carrosselOferta);
 router.get('/carrossel/random', produtoController.carrosselRandom);

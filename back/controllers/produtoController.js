@@ -5,13 +5,17 @@ const Marca = require('../models/marcaModel');
 async function criar(req, res) {
   try {
     const vendedor = await Vendedor.buscarPorUsuarioId(req.usuarioId);
-    if (!vendedor) return res.status(404).json({ error: 'Vendedor não encontrado' });
+    if (!vendedor) {
+      return res.status(404).json({ error: 'Vendedor não encontrado' });
+    }
 
     let marca_id = req.body.marca_id || null;
 
     if (req.body.marca_nome && !marca_id) {
       let marca = await Marca.buscarPorNome(req.body.marca_nome);
-      if (!marca) marca = await Marca.criar(req.body.marca_nome);
+      if (!marca) {
+        marca = await Marca.criar(req.body.marca_nome);
+      }
       marca_id = marca.id;
     }
 
@@ -39,7 +43,9 @@ async function listartodos(req, res) {
 async function buscarPorId(req, res) {
   try {
     const produto = await Produto.buscarPorId(req.params.id);
-    if (!produto) return res.status(404).json({ error: 'Produto não encontrado' });
+    if (!produto) {
+      return res.status(404).json({ error: 'Produto não encontrado' });
+    }
 
     const imagens = await Produto.buscarImagensPorId(req.params.id);
     return res.json({ ...produto, imagens });
@@ -51,7 +57,9 @@ async function buscarPorId(req, res) {
 async function buscar(req, res) {
   try {
     const { q } = req.query;
-    if (!q) return res.status(400).json({ error: 'Termo de busca é obrigatório' });
+    if (!q) {
+      return res.status(400).json({ error: 'Termo de busca é obrigatório' });
+    }
 
     const produtos = await Produto.buscarFuzzy(q);
     return res.json(produtos);
@@ -63,7 +71,9 @@ async function buscar(req, res) {
 async function buscarPorModelo(req, res) {
   try {
     const { modelo } = req.query;
-    if (!modelo) return res.status(400).json({ error: 'Modelo é obrigatório' });
+    if (!modelo) {
+      return res.status(400).json({ error: 'Modelo é obrigatório' });
+    }
 
     const produtos = await Produto.buscarPorModelo(modelo);
     return res.json(produtos);
@@ -75,7 +85,9 @@ async function buscarPorModelo(req, res) {
 async function meusProdutos(req, res) {
   try {
     const vendedor = await Vendedor.buscarPorUsuarioId(req.usuarioId);
-    if (!vendedor) return res.status(404).json({ error: 'Vendedor não encontrado' });
+    if (!vendedor) {
+      return res.status(404).json({ error: 'Vendedor não encontrado' });
+    }
 
     const produtos = await Produto.buscarPorVendedor(vendedor.id);
     return res.json(produtos);
@@ -140,10 +152,46 @@ async function carrosselEvento(req, res) {
   }
 }
 
+async function buscarPorSubcategoria(req, res) {
+  try {
+    const { subcategoria_id } = req.params;
+    const produtos = await Produto.buscarPorSubcategoria(subcategoria_id);
+    return res.json(produtos);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+async function buscarComFiltros(req, res) {
+  try {
+    const { q, categoria_id, subcategoria_id, marca_id, preco_min, preco_max, apenas_oferta, ordenar } = req.query;
+
+    const produtos = await Produto.buscarComFiltros({
+      termo: q,
+      categoria_id,
+      subcategoria_id,
+      marca_id,
+      preco_min,
+      preco_max,
+      apenas_oferta,
+      ordenar
+    });
+
+    return res.json({
+      total: produtos[0]?.total_resultados || 0,
+      produtos
+    });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+}
+
 async function atualizar(req, res) {
   try {
     const vendedor = await Vendedor.buscarPorUsuarioId(req.usuarioId);
-    if (!vendedor) return res.status(404).json({ error: 'Vendedor não encontrado' });
+    if (!vendedor) {
+      return res.status(404).json({ error: 'Vendedor não encontrado' });
+    }
 
     const produto = await Produto.buscarPorId(req.params.id);
     if (!produto) return res.status(404).json({ error: 'Produto não encontrado' });
@@ -156,7 +204,9 @@ async function atualizar(req, res) {
 
     if (req.body.marca_nome) {
       let marca = await Marca.buscarPorNome(req.body.marca_nome);
-      if (!marca) marca = await Marca.criar(req.body.marca_nome);
+      if (!marca) {
+        marca = await Marca.criar(req.body.marca_nome);
+      }
       marca_id = marca.id;
     }
 
@@ -170,7 +220,9 @@ async function atualizar(req, res) {
 async function deletar(req, res) {
   try {
     const produto = await Produto.buscarPorId(req.params.id);
-    if (!produto) return res.status(404).json({ error: 'Produto não encontrado' });
+    if (!produto) {
+      return res.status(404).json({ error: 'Produto não encontrado' });
+    }
 
     if (req.user.role !== 'admin') {
       const vendedor = await Vendedor.buscarPorUsuarioId(req.usuarioId);
@@ -189,5 +241,5 @@ async function deletar(req, res) {
 module.exports = { 
   criar, listartodos, buscarPorId, buscarPorModelo, buscar, meusProdutos,
   carrossel, carrosselCategoria, carrosselOferta, carrosselRandom,
-  carrosselFavoritos, carrosselEvento, atualizar, deletar
+  carrosselFavoritos, carrosselEvento, buscarPorSubcategoria, buscarComFiltros, atualizar, deletar
 };

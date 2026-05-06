@@ -60,7 +60,9 @@ async function listar(req, res) {
 async function buscarPorId(req, res) {
   try {
     const pedido = await Pedido.buscarPorId(req.params.id);
-    if (!pedido) return res.status(404).json({ error: 'Pedido não encontrado' });
+    if (!pedido) {
+      return res.status(404).json({ error: 'Pedido não encontrado' });
+    }
     return res.json(pedido);
   } catch (err) {
     return res.status(500).json({ error: err.message });
