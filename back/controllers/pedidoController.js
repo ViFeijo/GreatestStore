@@ -2,6 +2,7 @@ const Pedido = require('../models/pedidoModel');
 const Carrinho = require('../models/carrinhoModel');
 const Endereco = require('../models/enderecoModel');
 const { calcularFrete } = require('../utils/calcularFrete');
+const Pagamento = require('../models/pagamentoModel');
 
 async function criar(req, res) {
   try {
@@ -34,10 +35,12 @@ async function criar(req, res) {
     }));
 
     await Pedido.adicionarItens(pedido.id, itensPedido);
+    const pagamento = await Pagamento.criar(pedido.id, metodo_pagamento, total);
     await Carrinho.limpar(req.usuarioId);
 
     return res.status(201).json({
       pedido,
+      pagamento_id: pagamento.id,
       subtotal: subtotal.toFixed(2),
       frete: frete.toFixed(2),
       total: total.toFixed(2),
@@ -60,7 +63,9 @@ async function listar(req, res) {
 async function buscarPorId(req, res) {
   try {
     const pedido = await Pedido.buscarPorId(req.params.id);
-    if (!pedido) return res.status(404).json({ error: 'Pedido não encontrado' });
+    if (!pedido) {
+      return res.status(404).json({ error: 'Pedido não encontrado' });
+    }
     return res.json(pedido);
   } catch (err) {
     return res.status(500).json({ error: err.message });

@@ -21,7 +21,9 @@ async function listar(req, res) {
 async function definirPrincipal(req, res) {
   try {
     const endereco = await Endereco.definirPrincipal(req.params.id, req.usuarioId);
-    if (!endereco) return res.status(404).json({ error: 'Endereço não encontrado' });
+    if (!endereco) {
+      return res.status(404).json({ error: 'Endereço não encontrado' });
+    }
     return res.json(endereco);
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -31,7 +33,9 @@ async function definirPrincipal(req, res) {
 async function atualizar(req, res) {
   try {
     const endereco = await Endereco.atualizar(req.params.id, req.body);
-    if (!endereco) return res.status(404).json({ error: 'Endereço não encontrado' });
+    if (!endereco) {
+      return res.status(404).json({ error: 'Endereço não encontrado' });
+    }
     return res.json(endereco);
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -41,7 +45,9 @@ async function atualizar(req, res) {
 async function deletar(req, res) {
   try {
     const endereco = await Endereco.deletar(req.params.id);
-    if (!endereco) return res.status(404).json({ error: 'Endereço não encontrado' });
+    if (!endereco) {
+      return res.status(404).json({ error: 'Endereço não encontrado' });
+    }
     return res.json({ mensagem: 'Endereço deletado com sucesso' });
   } catch (err) {
     return res.status(500).json({ error: err.message });

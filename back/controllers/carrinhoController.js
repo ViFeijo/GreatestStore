@@ -58,7 +58,9 @@ async function atualizar(req, res) {
     }
 
     const item = await Carrinho.atualizar(req.params.id, req.usuarioId, quantidade);
-    if (!item) return res.status(404).json({ error: 'Item não encontrado no carrinho' });
+    if (!item) {
+      return res.status(404).json({ error: 'Item não encontrado no carrinho' });
+    }
     return res.json(item);
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -68,7 +70,9 @@ async function atualizar(req, res) {
 async function remover(req, res) {
   try {
     const item = await Carrinho.remover(req.params.id, req.usuarioId);
-    if (!item) return res.status(404).json({ error: 'Item não encontrado no carrinho' });
+    if (!item) {
+      return res.status(404).json({ error: 'Item não encontrado no carrinho' });
+    }
     return res.json({ mensagem: 'Item removido do carrinho' });
   } catch (err) {
     return res.status(500).json({ error: err.message });

@@ -12,7 +12,9 @@ async function carrossel(req, res) {
 async function buscarPorId(req, res) {
   try {
     const evento = await Evento.buscarPorId(req.params.id);
-    if (!evento) return res.status(404).json({ error: 'Evento não encontrado' });
+    if (!evento) {
+      return res.status(404).json({ error: 'Evento não encontrado' });
+    }
     return res.json(evento);
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -35,7 +37,9 @@ async function criar(req, res) {
 async function atualizar(req, res) {
   try {
     const evento = await Evento.atualizar(req.params.id, req.body);
-    if (!evento) return res.status(404).json({ error: 'Evento não encontrado' });
+    if (!evento) {
+      return res.status(404).json({ error: 'Evento não encontrado' });
+    }
     return res.json(evento);
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -45,7 +49,9 @@ async function atualizar(req, res) {
 async function deletar(req, res) {
   try {
     const evento = await Evento.deletar(req.params.id);
-    if (!evento) return res.status(404).json({ error: 'Evento não encontrado' });
+    if (!evento) {
+      return res.status(404).json({ error: 'Evento não encontrado' });
+    }
     return res.json({ mensagem: 'Evento deletado com sucesso' });
   } catch (err) {
     return res.status(500).json({ error: err.message });

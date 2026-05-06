@@ -1,0 +1,607 @@
+FORMATO: JSON
+AUTENTICACAO: JWT - enviado no header Authorization: Bearer TOKEN
+TOKEN EXPIRA: 7 dias
+ 
+================================================================================
+NIVEIS DE ACESSO
+================================================================================
+ 
+cliente  - Pode comprar, avaliar, favoritar produtos
+vendedor - Pode criar e gerenciar produtos, ver suas vendas
+admin    - Acesso total
+ 
+================================================================================
+AUTENTICACAO
+================================================================================
+ 
+POST /auth/registrar/cliente
+Body:
+{
+  "nome": "Arthur Chemello",
+  "email": "arthur@email.com",
+  "senha": "minhasenha123",
+  "cpf": "529.982.247-25"
+}
+Resposta (201):
+{
+  "id": "uuid",
+  "nome": "Arthur Chemello",
+  "email": "arthur@email.com",
+  "cpf": "52998224725",
+  "role": "cliente",
+  "criado_em": "2026-05-06T00:00:00Z"
+}
+Obs: CPF pode ser com ou sem formatacao. CPF validado matematicamente.
+ 
+--------------------------------------------------------------------------------
+ 
+POST /auth/registrar/vendedor
+Body:
+{
+  "email": "loja@email.com",
+  "senha": "minhasenha123",
+  "cnpj": "11.222.333/0001-81"
+}
+Resposta (201):
+{
+  "usuario": {
+    "id": "uuid",
+    "email": "loja@email.com",
+    "role": "vendedor"
+  },
+  "vendedor": {
+    "id": "uuid",
+    "cnpj": "11222333000181",
+    "nome_fantasia": "",
+    "razao_social": ""
+  }
+}
+Obs: Apos o registro completar o perfil com nome fantasia e razao social.
+ 
+--------------------------------------------------------------------------------
+ 
+POST /auth/login
+Body:
+{
+  "email": "arthur@email.com",
+  "senha": "minhasenha123"
+}
+Resposta (200):
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "usuario": {
+    "id": "uuid",
+    "nome": "Arthur Chemello",
+    "email": "arthur@email.com",
+    "role": "cliente"
+  }
+}
+Obs: Login unico para clientes, vendedores e admins.
+     O campo role indica o tipo de usuario.
+ 
+================================================================================
+USUARIO
+================================================================================
+ 
+GET    /usuarios/perfil          - Ver perfil (autenticado)
+PUT    /usuarios/perfil          - Atualizar perfil (autenticado)
+DELETE /usuarios/perfil          - Deletar conta (autenticado)
+GET    /usuarios/todos           - Listar todos (admin)
+DELETE /usuarios/:id             - Deletar usuario (admin)
+ 
+PUT /usuarios/perfil
+Body:
+{
+  "nome": "Arthur Silva",
+  "email": "novoemail@email.com"
+}
+ 
+================================================================================
+VENDEDOR
+================================================================================
+ 
+GET    /vendedores/perfil            - Ver perfil (vendedor)
+PUT    /vendedores/perfil/completar  - Completar perfil 2a tela (vendedor)
+PUT    /vendedores/perfil            - Atualizar perfil (vendedor)
+DELETE /vendedores/perfil            - Deletar conta (vendedor)
+GET    /vendedores/todos             - Listar todos (admin)
+ 
+PUT /vendedores/perfil/completar
+Body:
+{
+  "nome_fantasia": "Loja do Arthur",
+  "razao_social": "Arthur Comercio LTDA"
+}
+ 
+PUT /vendedores/perfil
+Body:
+{
+  "nome_fantasia": "Nova Loja",
+  "razao_social": "Nova Loja LTDA",
+  "foto_perfil_url": "https://...",
+  "banner_url": "https://..."
+}
+ 
+================================================================================
+ENDERECO DO USUARIO
+================================================================================
+ 
+POST   /enderecos                - Criar endereco (autenticado)
+GET    /enderecos                - Listar enderecos (autenticado)
+PUT    /enderecos/:id/principal  - Definir principal (autenticado)
+PUT    /enderecos/:id            - Atualizar endereco (autenticado)
+DELETE /enderecos/:id            - Deletar endereco (autenticado)
+ 
+POST /enderecos
+Body:
+{
+  "apelido": "Casa",
+  "cep": "90010-150",
+  "rua": "Rua dos Andradas",
+  "numero": "1234",
+  "complemento": "Apto 5",
+  "bairro": "Centro",
+  "cidade": "Porto Alegre",
+  "estado": "RS"
+}
+ 
+================================================================================
+ENDERECO DO VENDEDOR
+================================================================================
+ 
+POST   /vendedores/endereco  - Cadastrar endereco da loja (vendedor)
+GET    /vendedores/endereco  - Ver endereco da loja (vendedor)
+PUT    /vendedores/endereco  - Atualizar endereco da loja (vendedor)
+DELETE /vendedores/endereco  - Deletar endereco da loja (vendedor)
+ 
+POST /vendedores/endereco
+Body:
+{
+  "cep": "01310-100",
+  "rua": "Av. Paulista",
+  "numero": "1000",
+  "complemento": "Sala 5",
+  "bairro": "Bela Vista",
+  "cidade": "Sao Paulo",
+  "estado": "SP"
+}
+Obs: O CEP do vendedor e usado como origem no calculo de frete.
+ 
+================================================================================
+CATEGORIAS
+================================================================================
+ 
+GET    /categorias      - Listar categorias (publico)
+GET    /categorias/:id  - Buscar por ID (publico)
+POST   /categorias      - Criar categoria (admin)
+PUT    /categorias/:id  - Atualizar categoria (admin)
+DELETE /categorias/:id  - Deletar categoria (admin)
+ 
+POST /categorias
+Body:
+{
+  "nome": "Eletronicos"
+}
+ 
+================================================================================
+SUBCATEGORIAS
+================================================================================
+ 
+GET    /subcategorias                        - Listar todas (publico)
+GET    /subcategorias/categoria/:categoria_id - Listar por categoria (publico)
+GET    /subcategorias/:id                    - Buscar por ID (publico)
+POST   /subcategorias                        - Criar subcategoria (admin)
+PUT    /subcategorias/:id                    - Atualizar (admin)
+DELETE /subcategorias/:id                    - Deletar (admin)
+ 
+POST /subcategorias
+Body:
+{
+  "categoria_id": "uuid",
+  "nome": "Samsung"
+}
+ 
+================================================================================
+PRODUTOS
+================================================================================
+ 
+GET    /produtos                                    - Listar todos (publico)
+GET    /produtos/:id                                - Buscar por ID (publico)
+GET    /produtos/buscar?q=termo                     - Busca fuzzy (publico)
+GET    /produtos/filtrar                            - Busca com filtros (publico)
+GET    /produtos/subcategoria/:subcategoria_id      - Por subcategoria (publico)
+GET    /produtos/meus                               - Meus produtos (vendedor)
+POST   /produtos                                    - Criar produto (vendedor)
+PUT    /produtos/:id                                - Atualizar produto (vendedor)
+DELETE /produtos/:id                                - Deletar produto (vendedor/admin)
+ 
+GET /produtos/:id - Resposta:
+{
+  "id": "uuid",
+  "nome": "Samsung Galaxy S24",
+  "modelo": "S24",
+  "descricao": "...",
+  "preco": 3999.90,
+  "preco_promocional": 3499.90,
+  "desconto_ativo": true,
+  "quantidade": 50,
+  "marca_nome": "Samsung",
+  "vendedor_nome": "Tech Store",
+  "vendedor_foto": "https://...",
+  "vendedor_banner": "https://...",
+  "categoria_nome": "Celular & Smartphone",
+  "subcategoria_nome": "Samsung",
+  "media_avaliacoes": 4.5,
+  "total_avaliacoes": 128,
+  "imagens": [
+    { "url": "https://...", "is_principal": true, "ordem": 0 },
+    { "url": "https://...", "is_principal": false, "ordem": 1 }
+  ]
+}
+ 
+GET /produtos/buscar?q=samsng
+Obs: Retorna produtos mesmo com erros de digitacao (busca fuzzy).
+ 
+GET /produtos/filtrar - Parametros opcionais:
+  q             - Termo de busca
+  categoria_id  - UUID da categoria
+  subcategoria_id - UUID da subcategoria
+  marca_id      - UUID da marca
+  preco_min     - Preco minimo
+  preco_max     - Preco maximo
+  apenas_oferta - true/false
+  ordenar       - mais_recentes / menor_preco / maior_preco
+ 
+Exemplo: GET /produtos/filtrar?q=computador&preco_max=5000&apenas_oferta=true&ordenar=menor_preco
+ 
+Resposta:
+{
+  "total": 42,
+  "produtos": [...]
+}
+ 
+POST /produtos
+Body:
+{
+  "nome": "Samsung Galaxy S24",
+  "modelo": "S24",
+  "descricao": "Smartphone incrivel...",
+  "preco": 3999.90,
+  "quantidade": 50,
+  "subcategoria_id": "uuid",
+  "marca_nome": "Samsung",
+  "preco_promocional": 3499.90,
+  "desconto_ativo": true
+}
+Obs: Pode enviar marca_nome em vez de marca_id. O sistema cria a marca
+     automaticamente se nao existir.
+ 
+================================================================================
+CARROSSEIS DE PRODUTOS
+================================================================================
+ 
+GET /produtos/carrossel                          - Produtos recentes
+GET /produtos/carrossel/oferta                   - Produtos em oferta
+GET /produtos/carrossel/random                   - Produtos aleatorios
+GET /produtos/carrossel/favoritos                - Favoritos do usuario (autenticado)
+GET /produtos/carrossel/categoria/:categoria_id  - Por categoria
+GET /produtos/carrossel/evento/:evento_id        - Por evento
+ 
+Todos os carrosseis retornam ate 20 produtos com os campos:
+{
+  "id": "uuid",
+  "nome": "Samsung Galaxy S24",
+  "quantidade": 50,
+  "preco": 3999.90,
+  "preco_promocional": 3499.90,
+  "desconto_ativo": true,
+  "preco_final": 3499.90,
+  "marca_nome": "Samsung",
+  "imagem_url": "https://...",
+  "media_avaliacoes": 4.5,
+  "total_avaliacoes": 128
+}
+ 
+================================================================================
+MARCAS
+================================================================================
+ 
+GET    /marcas/carrossel  - Carrossel de marcas com logo (publico)
+GET    /marcas            - Listar todas (publico)
+GET    /marcas/:id        - Buscar por ID (publico)
+POST   /marcas            - Criar marca (admin)
+DELETE /marcas/:id        - Deletar marca (admin)
+ 
+GET /marcas/carrossel - Resposta:
+[
+  { "id": "uuid", "nome": "Samsung", "logo_url": "https://..." },
+  { "id": "uuid", "nome": "Apple", "logo_url": "https://..." }
+]
+ 
+================================================================================
+EVENTOS
+================================================================================
+ 
+GET    /eventos/carrossel  - Carrossel de banners ativos (publico)
+GET    /eventos/:id        - Buscar por ID (publico)
+POST   /eventos            - Criar evento (admin)
+PUT    /eventos/:id        - Atualizar evento (admin)
+DELETE /eventos/:id        - Deletar evento (admin)
+ 
+POST /eventos
+Body:
+{
+  "nome": "Black Friday",
+  "descricao": "As maiores ofertas do ano!",
+  "data_inicio": "2026-11-25T00:00:00Z",
+  "data_fim": "2026-11-25T23:59:59Z",
+  "banner_url": "https://..."
+}
+Obs: Carrossel retorna apenas eventos ativos e dentro do prazo de validade.
+ 
+================================================================================
+CARRINHO
+================================================================================
+ 
+POST   /carrinho      - Adicionar produto (autenticado)
+GET    /carrinho      - Listar carrinho com totais (autenticado)
+PUT    /carrinho/:id  - Atualizar quantidade (autenticado)
+DELETE /carrinho/:id  - Remover item (autenticado)
+ 
+POST /carrinho
+Body:
+{
+  "produto_id": "uuid",
+  "quantidade": 2
+}
+Obs: Se o produto ja estiver no carrinho, a quantidade e somada automaticamente.
+ 
+GET /carrinho?endereco_id=uuid
+Obs: Passando endereco_id como query param, o frete e calculado automaticamente.
+ 
+Resposta:
+{
+  "itens": [
+    {
+      "id": "uuid",
+      "quantidade": 2,
+      "produto_id": "uuid",
+      "nome": "Samsung Galaxy S24",
+      "preco": 3999.90,
+      "preco_final": 3499.90,
+      "desconto_ativo": true,
+      "imagem_url": "https://...",
+      "marca_nome": "Samsung",
+      "subtotal_item": 6999.80,
+      "estoque": 50
+    }
+  ],
+  "subtotal": "6999.80",
+  "frete": "20.00",
+  "total": "7019.80"
+}
+ 
+PUT /carrinho/:id
+Body:
+{
+  "quantidade": 3
+}
+ 
+================================================================================
+CALCULO DE FRETE
+================================================================================
+ 
+O frete e calculado com base nas regioes dos CEPs de origem e destino.
+ 
+Mesmo prefixo de CEP        - R$ 15,00
+Mesma regiao, estado diferente - R$ 20,00
+Regioes diferentes          - R$ 35,00
+ 
+Regioes:
+  Sudeste    - SP, RJ, MG, ES (CEPs 01-39)
+  Sul        - PR, SC, RS (CEPs 80-99)
+  Nordeste   - BA, SE, AL, PE, PB, RN, CE, PI, MA (CEPs 40-65)
+  Norte      - PA, AP, AM, RR, AC (CEPs 66-69)
+  Centro-Oeste - DF, GO, MT, MS (CEPs 70-79)
+ 
+================================================================================
+PEDIDOS
+================================================================================
+ 
+POST /pedidos      - Criar pedido (autenticado)
+GET  /pedidos      - Listar meus pedidos (autenticado)
+GET  /pedidos/:id  - Buscar pedido por ID (autenticado)
+ 
+POST /pedidos
+Body:
+{
+  "endereco_id": "uuid",
+  "metodo_pagamento": "pix"
+}
+Metodos de pagamento aceitos: pix, cartao_credito, cartao_debito, boleto
+ 
+Resposta (201):
+{
+  "pedido": {
+    "id": "uuid",
+    "status": "pendente",
+    "criado_em": "2026-05-06T00:00:00Z"
+  },
+  "pagamento_id": "uuid",
+  "subtotal": "6999.80",
+  "frete": "20.00",
+  "total": "7019.80",
+  "metodo_pagamento": "pix"
+}
+Obs: O carrinho e limpo automaticamente apos a criacao do pedido.
+     O pagamento_id e usado para simular o pagamento depois.
+ 
+Status do pedido: pendente / pago / em_separacao / enviado / entregue / cancelado
+ 
+================================================================================
+PAGAMENTOS
+================================================================================
+ 
+GET /pagamentos                    - Listar meus pagamentos (autenticado)
+GET /pagamentos/pedido/:pedido_id  - Buscar pagamento por pedido (autenticado)
+PUT /pagamentos/:id/status         - Atualizar status (admin)
+ 
+PUT /pagamentos/:id/status
+Body:
+{
+  "status": "aprovado",
+  "codigo_transacao": "TXN-123456"
+}
+Status validos: pendente, aprovado, recusado, estornado
+ 
+Obs: Quando aprovado  - pedido muda para "pago"
+     Quando recusado  - pedido muda para "cancelado"
+     Quando estornado - pedido muda para "cancelado"
+ 
+SIMULACAO DE PAGAMENTO NO FRONT:
+Apos criar o pedido, use o pagamento_id retornado para simular:
+ 
+  Aprovado:
+  PUT /pagamentos/:pagamento_id/status
+  Body: { "status": "aprovado", "codigo_transacao": "SIM-123" }
+ 
+  Recusado:
+  PUT /pagamentos/:pagamento_id/status
+  Body: { "status": "recusado", "codigo_transacao": "SIM-456" }
+ 
+================================================================================
+UPLOAD DE IMAGENS
+================================================================================
+ 
+Todas as rotas usam multipart/form-data.
+O campo do arquivo deve se chamar "imagem".
+Formatos aceitos: jpeg, png, webp
+Tamanho maximo: 5MB
+ 
+POST /upload/produto/:produto_id   - Upload imagem produto (vendedor)
+POST /upload/vendedor/perfil       - Upload foto perfil (vendedor)
+POST /upload/vendedor/banner       - Upload banner (vendedor)
+POST /upload/marca/:marca_id       - Upload imagem marca (admin)
+POST /upload/evento/:evento_id     - Upload banner evento (admin)
+ 
+POST /upload/produto/:produto_id
+Form data:
+  imagem       - arquivo de imagem
+  is_principal - true ou false
+  ordem        - numero inteiro
+ 
+Obs: A URL e salva automaticamente no banco apos o upload.
+ 
+================================================================================
+AVALIACOES
+================================================================================
+ 
+GET    /avaliacoes/produto/:produto_id  - Listar avaliacoes (publico)
+POST   /avaliacoes/produto/:produto_id  - Criar avaliacao (autenticado)
+PUT    /avaliacoes/:id                  - Atualizar avaliacao (autenticado)
+DELETE /avaliacoes/:id                  - Deletar avaliacao (autenticado)
+ 
+POST /avaliacoes/produto/:produto_id
+Body:
+{
+  "nota": 4.5,
+  "comentario": "Produto muito bom!"
+}
+Obs: Nota aceita meias estrelas: 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5
+     Um usuario so pode avaliar um produto uma vez.
+ 
+GET /avaliacoes/produto/:produto_id - Resposta:
+{
+  "media": {
+    "total_avaliacoes": "128",
+    "media": "4.5"
+  },
+  "avaliacoes": [
+    {
+      "id": "uuid",
+      "nota": 5.0,
+      "comentario": "Produto excelente!",
+      "usuario_nome": "Arthur",
+      "criado_em": "2026-05-06T00:00:00Z"
+    }
+  ]
+}
+ 
+================================================================================
+FAVORITOS
+================================================================================
+ 
+GET    /favoritos              - Listar favoritos (autenticado)
+POST   /favoritos/:produto_id  - Adicionar favorito (autenticado)
+GET    /favoritos/:produto_id  - Verificar se e favorito (autenticado)
+DELETE /favoritos/:produto_id  - Remover favorito (autenticado)
+ 
+GET /favoritos/:produto_id - Resposta:
+{
+  "favoritado": true
+}
+ 
+================================================================================
+NOTIFICACOES
+================================================================================
+ 
+GET    /notificacoes          - Listar notificacoes (autenticado)
+GET    /notificacoes/nao-lidas - Contar nao lidas (autenticado)
+PUT    /notificacoes/todas    - Marcar todas como lidas (autenticado)
+PUT    /notificacoes/:id      - Marcar como lida (autenticado)
+DELETE /notificacoes/:id      - Deletar notificacao (autenticado)
+ 
+GET /notificacoes/nao-lidas - Resposta:
+{
+  "total": 3
+}
+ 
+================================================================================
+CODIGOS DE STATUS HTTP
+================================================================================
+ 
+200 - Sucesso
+201 - Criado com sucesso
+400 - Dados invalidos ou faltando
+401 - Nao autenticado - token ausente ou invalido
+403 - Sem permissao para essa acao
+404 - Recurso nao encontrado
+409 - Conflito - dado ja existe (email, CPF, CNPJ)
+500 - Erro interno do servidor
+ 
+================================================================================
+FORMATO DE ERRO
+================================================================================
+ 
+Todos os erros seguem o formato:
+{
+  "error": "Mensagem descritiva do erro"
+}
+ 
+================================================================================
+FLUXO COMPLETO DE COMPRA
+================================================================================
+ 
+1. Cliente se registra          POST /auth/registrar/cliente
+2. Cliente faz login            POST /auth/login
+3. Cliente cadastra endereco    POST /enderecos
+4. Cliente busca produtos       GET  /produtos/filtrar?q=samsung
+5. Cliente adiciona ao carrinho POST /carrinho
+6. Cliente ve carrinho + frete  GET  /carrinho?endereco_id=uuid
+7. Cliente finaliza pedido      POST /pedidos
+8. Cliente simula pagamento     PUT  /pagamentos/:pagamento_id/status
+9. Cliente avalia produto       POST /avaliacoes/produto/:id
+ 
+================================================================================
+FLUXO COMPLETO DO VENDEDOR
+================================================================================
+ 
+1. Vendedor se registra         POST /auth/registrar/vendedor
+2. Vendedor faz login           POST /auth/login
+3. Vendedor completa perfil     PUT  /vendedores/perfil/completar
+4. Vendedor sobe foto/banner    POST /upload/vendedor/perfil
+                                POST /upload/vendedor/banner
+5. Vendedor cadastra endereco   POST /vendedores/endereco
+6. Vendedor cria produto        POST /produtos
+7. Vendedor sobe imagens        POST /upload/produto/:produto_id
+8. Vendedor ve seus produtos    GET  /produtos/meus

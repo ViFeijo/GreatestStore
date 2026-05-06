@@ -3,7 +3,9 @@ const Usuario = require('../models/usuarioModel');
 async function perfil(req, res) {
   try {
     const usuario = await Usuario.buscarPorId(req.usuarioId);
-    if (!usuario) return res.status(404).json({ error: 'Usuário não encontrado' });
+    if (!usuario) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
     return res.json(usuario);
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -14,7 +16,9 @@ async function atualizar(req, res) {
   try {
     const { nome, email } = req.body;
     const usuario = await Usuario.atualizar(req.usuarioId, nome, email);
-    if (!usuario) return res.status(404).json({ error: 'Usuário não encontrado' });
+    if (!usuario) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
     return res.json(usuario);
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -24,7 +28,9 @@ async function atualizar(req, res) {
 async function deletar(req, res) {
   try {
     const usuario = await Usuario.deletar(req.usuarioId);
-    if (!usuario) return res.status(404).json({ error: 'Usuário não encontrado' });
+    if (!usuario) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
     return res.json({ mensagem: 'Conta deletada com sucesso' });
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -34,7 +40,9 @@ async function deletar(req, res) {
 async function deletarPorId(req, res) {
   try {
     const usuario = await Usuario.deletar(req.params.id);
-    if (!usuario) return res.status(404).json({ error: 'Usuário não encontrado' });
+    if (!usuario) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
     return res.json({ mensagem: 'Conta deletada com sucesso' });
   } catch (err) {
     return res.status(500).json({ error: err.message });
