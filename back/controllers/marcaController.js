@@ -21,7 +21,9 @@ async function listartodos(req, res) {
 async function buscarPorId(req, res) {
   try {
     const marca = await Marca.buscarPorId(req.params.id);
-    if (!marca) return res.status(404).json({ error: 'Marca não encontrada' });
+    if (!marca) {
+      return res.status(404).json({ error: 'Marca não encontrada' });
+    }
     return res.json(marca);
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -31,7 +33,9 @@ async function buscarPorId(req, res) {
 async function criar(req, res) {
   try {
     const { nome } = req.body;
-    if (!nome) return res.status(400).json({ error: 'Nome é obrigatório' });
+    if (!nome) {
+      return res.status(400).json({ error: 'Nome é obrigatório' });
+    }
     const marca = await Marca.criar(nome);
     return res.status(201).json(marca);
   } catch (err) {
@@ -42,7 +46,9 @@ async function criar(req, res) {
 async function deletar(req, res) {
   try {
     const marca = await Marca.deletar(req.params.id);
-    if (!marca) return res.status(404).json({ error: 'Marca não encontrada' });
+    if (!marca) {
+      return res.status(404).json({ error: 'Marca não encontrada' });
+    }
     return res.json({ mensagem: 'Marca deletada com sucesso' });
   } catch (err) {
     return res.status(500).json({ error: err.message });
