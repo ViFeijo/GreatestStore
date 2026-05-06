@@ -1,10 +1,14 @@
 const Vendedor = require('../models/vendedorModel');
+const EnderecoVendedor = require('../models/enderecoVendedorModel');
 
 async function perfil(req, res) {
   try {
     const vendedor = await Vendedor.buscarPorUsuarioId(req.usuarioId);
     if (!vendedor) return res.status(404).json({ error: 'Vendedor não encontrado' });
-    return res.json(vendedor);
+
+    const endereco = await EnderecoVendedor.buscarPorVendedor(vendedor.id);
+
+    return res.json({ ...vendedor, endereco: endereco || null });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
