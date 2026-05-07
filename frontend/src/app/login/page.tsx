@@ -16,7 +16,7 @@ export default function LoginMain() {
         backgroundRepeat: "no-repeat",
       }}
     >
-      <div className="absolute left-8 md:left-16 bottom-0 select-none pointer-events-none">
+      <div className="absolute left-8 md:left-16 top-10 select-none pointer-events-none z-0">
         <div className="absolute top-10 left-0">
           <h1 className="text-7xl md:text-8xl font-extrabold text-[#7a1a2e] leading-none tracking-tight">
             Greatest
@@ -31,7 +31,7 @@ export default function LoginMain() {
 
       <div className="relative z-10 w-full max-w-sm ml-auto mr-16">
         <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl shadow-md px-10 py-10 w-full max-w-sm">
-          <div className="flex flex-col items-center text-[#c8933a] text-sm mb-1">
+          <div className="flex flex-col  text-[#c8933a] text-sm mb-1">
             <span>Greatest</span>
             <span>Store</span>
           </div>
