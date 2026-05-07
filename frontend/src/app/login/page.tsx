@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
-export default function LoginMain() {
+export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -11,7 +11,7 @@ export default function LoginMain() {
       className="relative flex items-center justify-center w-full h-[calc(100vh-theme(spacing.32))] overflow-hidden"
       style={{
         backgroundImage: "url('/login.jpeg')",
-        backgroundSize: "70%",
+        backgroundSize: "67%",
         backgroundPosition: "left center",
         backgroundRepeat: "no-repeat",
       }}
