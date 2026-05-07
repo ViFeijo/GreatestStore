@@ -14,6 +14,8 @@ export default function Header() {
                             alt="Greatest Store"
                             width={50}
                             height={50}
+                            style={{ width: "auto", height: "auto" }}
+                            priority
                         />
                         <span className={styles.logoGrestest}>Greatest</span>
                         <span className={styles.logoStore}>STORE</span>
