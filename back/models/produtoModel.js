@@ -368,6 +368,16 @@ async function buscarComFiltros({ termo, categoria_id, subcategoria_id, marca_id
   return result.rows;
 }
 
+async function buscarBlocosPorId(id) {
+  const result = await pool.query(
+    `SELECT * FROM produto_descricao_blocos 
+     WHERE produto_id = $1 
+     ORDER BY ordem ASC`,
+    [id]
+  );
+  return result.rows;
+}
+
 async function atualizar(id, dados) {
   const { subcategoria_id, marca_id, nome, modelo, descricao, preco, quantidade, preco_promocional, desconto_ativo } = dados;
   const result = await pool.query(
@@ -388,7 +398,7 @@ async function deletar(id) {
 }
 
 module.exports = { 
-  criar, listartodos, buscarPorId, buscarImagensPorId, buscarPorModelo,
+  criar, listartodos, buscarPorId, buscarImagensPorId, buscarBlocosPorId, buscarPorModelo,
   buscarPorVendedor, buscarFuzzy, buscarParaCarrossel, buscarPorCategoria,
   buscarEmOferta, buscarRandom, buscarFavoritos, buscarPorEvento,
   buscarPorSubcategoria, buscarComFiltros, atualizar, deletar

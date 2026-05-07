@@ -43,12 +43,12 @@ async function listartodos(req, res) {
 async function buscarPorId(req, res) {
   try {
     const produto = await Produto.buscarPorId(req.params.id);
-    if (!produto) {
-      return res.status(404).json({ error: 'Produto não encontrado' });
-    }
+    if (!produto) return res.status(404).json({ error: 'Produto não encontrado' });
 
     const imagens = await Produto.buscarImagensPorId(req.params.id);
-    return res.json({ ...produto, imagens });
+    const descricao = await Produto.buscarBlocosPorId(req.params.id);
+    
+    return res.json({ ...produto, imagens, descricao });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
