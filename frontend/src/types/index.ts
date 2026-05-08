@@ -70,6 +70,9 @@ export interface ProdutoDetalhado {
     valores: InformacoesPreco;
     vendedor: InformacoesVendedor;
     textoPreviaFrete: string;          // "Chegará grátis entre segunda e quarta..."
+    
+    // --- CAMPOS NOVOS ADICIONADOS AQUI ---
+    evento_id?: string | number | null; // ID do evento para linkar o banner
     urlBannerPromocional?: string;     // O banner do "MEGA MAIO" (Opcional)
     
     // Seções Inferiores (Abaixo da descrição)
@@ -248,6 +251,8 @@ export interface ProdutoDetalheApi extends ProdutoBaseApi {
     media_avaliacoes?: number | string | null;
     total_avaliacoes?: number | string | null;
     imagens?: ProdutoImagemApi[];
+    evento_id?: string | number | null;
+    evento_banner?: string | null;
 }
 
 export interface BuscaProdutosResponse {
@@ -370,4 +375,15 @@ export interface NotificacaoNaoLidasResponse {
 
 export interface UploadResponse {
     url: string;
+}
+
+// --- TIPAGEM ADICIONADA PARA O SIDEBAR DIR ---
+export interface SideBarDirProps {
+    produtoId: string;
+    valores: InformacoesPreco;
+    vendedor: InformacoesVendedor;
+    emEstoque: boolean;
+    textoPreviaFrete: string;
+    onAddToCart: (quantidade: number) => void;
+    adicionando?: boolean; // Propriedade opcional de estado de carregamento
 }

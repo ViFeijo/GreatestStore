@@ -33,6 +33,10 @@ type AvaliacoesResponse = {
     avaliacoes?: AvaliacaoApi[];
 };
 
+function isAvaliacoesResponse(value: unknown): value is AvaliacoesResponse {
+    return typeof value === "object" && value !== null && "avaliacoes" in value;
+}
+
 function toNumber(value: unknown, fallback = 0) {
     if (typeof value === "number") return value;
     if (typeof value === "string") {
@@ -79,6 +83,8 @@ function mapProduto(data: ProdutoDetalheApiComBlocos): ProdutoDetalhado {
             ...(data.categoria_id ? [{ rotulo: data.categoria_nome || "Categoria", url: `/busca?categoria_id=${data.categoria_id}` }] : []),
             ...(data.subcategoria_id ? [{ rotulo: data.subcategoria_nome || "Subcategoria", url: `/busca?subcategoria_id=${data.subcategoria_id}` }] : []),
         ],
+        evento_id: data.evento_id || null, 
+        urlBannerPromocional: data.evento_banner || data.vendedor_banner || undefined,
         nomeMarca: data.marca_nome || "Marca Geral",
         logoMarca: "",
         nomeProduto: data.nome,
@@ -104,7 +110,6 @@ function mapProduto(data: ProdutoDetalheApiComBlocos): ProdutoDetalhado {
             fotoPerfil: data.vendedor_foto || null
         },
         textoPreviaFrete: "Chegará grátis e rápido",
-        urlBannerPromocional: data.vendedor_banner || undefined,
         perguntasFrequentes: [], produtosRelacionados: [], vistosRecentemente: [],
     };
 }
@@ -115,13 +120,15 @@ export default function ProductPage() {
     const [relacionados, setRelacionados] = useState<ProdutoResumido[]>([]);
     const [aleatorios, setAleatorios] = useState<ProdutoResumido[]>([]);
 
-    // Novos Estados
     const [avaliacoesUsuarios, setAvaliacoesUsuarios] = useState<AvaliacaoApi[]>([]);
     const [perguntasFrequentes, setPerguntasFrequentes] = useState<PerguntaFrequente[]>([]);
     const [novaPergunta, setNovaPergunta] = useState("");
 
     const [loading, setLoading] = useState(true);
     const [erro, setErro] = useState<string | null>(null);
+    
+    // ESTADO CORRIGIDO QUE FALTAVA
+    const [adicionando, setAdicionando] = useState(false);
 
     useEffect(() => {
         if (!id) return;
@@ -131,13 +138,11 @@ export default function ProductPage() {
             try {
                 const api = process.env.NEXT_PUBLIC_API_URL;
 
-                // 1. Busca o Produto Principal
                 const res = await fetch(`${api}/produtos/${id}`, { signal: controller.signal });
                 if (!res.ok) throw new Error("Produto não encontrado.");
                 const data = await res.json() as ProdutoDetalheApiComBlocos;
                 setProduto(mapProduto(data));
 
-                // 2. Busca Dados Paralelos (Carrosséis, Avaliações de Texto, Perguntas)
                 const promessas = [
                     fetch(`${api}/produtos/carrossel/random`).then(r => r.ok ? r.json() : []),
                     fetch(`${api}/produtos/subcategoria/${data.subcategoria_id}`).then(r => r.ok ? r.json() : []),
@@ -152,7 +157,6 @@ export default function ProductPage() {
 
                 if (isAvaliacoesResponse(dadosAvals) && Array.isArray(dadosAvals.avaliacoes)) setAvaliacoesUsuarios(dadosAvals.avaliacoes);
 
-                // Mapeia perguntas do BD para o formato que o Accordion espera
                 if (Array.isArray(dadosPerguntas)) {
                     const faqsMapeadas = (dadosPerguntas as PerguntaApi[])
                         .filter((p) => p.resposta)
@@ -160,7 +164,6 @@ export default function ProductPage() {
                     setPerguntasFrequentes(faqsMapeadas);
                 }
 
-                // 3. (Opcional) Registrar Histórico de Navegação
                 const token = localStorage.getItem("token");
                 if (token) {
                     fetch(`${api}/historico/registrar/${id}`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } }).catch(() => { });
@@ -176,8 +179,8 @@ export default function ProductPage() {
         fetchTudo();
         return () => controller.abort();
     }, [id]);
-        const handleAdicionarCarrinho = async (quantidade: number) => {
-        // Adiciona ao carrinho local imediatamente para atualizar a UI
+
+    const handleAdicionarCarrinho = async (quantidade: number) => {
         if (produto) {
             addCartItem({
                 id: produto.id,
@@ -189,10 +192,9 @@ export default function ProductPage() {
             });
         }
 
-        // Tenta sincronizar com o servidor se o usuário estiver logado
         const token = localStorage.getItem("token");
-        if (!token) return; // não bloqueia a ação local se não houver token
- 
+        if (!token) return; 
+
         setAdicionando(true);
         try {
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/carrinho`, {
@@ -203,10 +205,9 @@ export default function ProductPage() {
                 },
                 body: JSON.stringify({ produto_id: id, quantidade }),
             });
- 
+
             if (!res.ok) throw new Error();
         } catch {
-            // Falha na sincronização não impede a adição local
             alert("Erro ao sincronizar o carrinho com o servidor.");
         } finally {
             setAdicionando(false);
@@ -238,7 +239,7 @@ export default function ProductPage() {
 
     return (
         <main className="bg-slate-50 min-h-screen pb-20">
-            {/* Breadcrumbs - AGORA CLICÁVEIS */}
+            {/* Breadcrumbs */}
             <nav className="bg-white border-b px-4 py-3 mb-8">
                 <div className="max-w-7xl mx-auto flex gap-2 text-sm text-slate-500 font-medium">
                     <Link href="/" className="hover:text-red-600 transition-colors">Home</Link> &gt;
@@ -254,7 +255,7 @@ export default function ProductPage() {
             <div className="container mx-auto px-4 max-w-7xl">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-                    {/* COLUNA ESQUERDA (Fotos e Título) */}
+                    {/* COLUNA ESQUERDA (Fotos, Título e Infos) */}
                     <div className="lg:col-span-8 space-y-6">
                         <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
                             <div className="flex flex-col md:flex-row gap-8">
@@ -271,7 +272,6 @@ export default function ProductPage() {
                                     <p className="text-red-600 font-bold uppercase text-xs tracking-widest">{produto.nomeMarca}</p>
                                     <h1 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight">{produto.nomeProduto}</h1>
 
-                                    {/* Estrelas */}
                                     <div className="flex items-center gap-2">
                                         <div className="flex items-center">
                                             {[...Array(5)].map((_, i) => (
@@ -309,7 +309,7 @@ export default function ProductPage() {
                             </div>
                         </div>
 
-                        {/* AVALIAÇÕES DE TEXTO (Comentários dos Clientes) */}
+                        {/* AVALIAÇÕES DE TEXTO */}
                         <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
                             <h2 className="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3">
                                 <Star size={28} className="text-red-600 fill-red-600" /> Opiniões dos Clientes
@@ -343,7 +343,7 @@ export default function ProductPage() {
                             )}
                         </div>
 
-                        {/* PERGUNTAS E RESPOSTAS (Usando o Accordion que você mandou e input novo) */}
+                        {/* PERGUNTAS E RESPOSTAS */}
                         <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
                             <h2 className="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3">
                                 <MessageCircle size={28} className="text-red-600" /> Perguntas ao Vendedor
@@ -374,6 +374,22 @@ export default function ProductPage() {
                     {/* COLUNA DIREITA (Sidebar Compra & Info Vendedor) */}
                     <div className="lg:col-span-4 space-y-6">
                         <div className="sticky top-24">
+                            
+                            {/* AQUI ESTÁ A INJEÇÃO DO BANNER DO EVENTO */}
+                            {produto.urlBannerPromocional && (
+                                <Link 
+                                    href={produto.evento_id ? `/busca?evento_id=${produto.evento_id}` : `/loja/${produto.vendedor.id}`} 
+                                    className="block mb-6 overflow-hidden rounded-2xl shadow-sm border border-slate-200 group cursor-pointer"
+                                >
+                                    <img 
+                                        src={produto.urlBannerPromocional} 
+                                        alt="Campanha Especial" 
+                                        className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-500" 
+                                    />
+                                </Link>
+                            )}
+
+                            {/* COMPRA BOX */}
                             <SideBarDir
                                 produtoId={produto.id}
                                 valores={produto.valores}
@@ -381,9 +397,10 @@ export default function ProductPage() {
                                 emEstoque={produto.emEstoque}
                                 textoPreviaFrete={produto.textoPreviaFrete}
                                 onAddToCart={handleAdicionarCarrinho}
+                                adicionando={adicionando}
                             />
 
-                            {/* CARD DE INFORMAÇÕES DO VENDEDOR (Logo Abaixo da Compra) */}
+                            {/* CARD DE INFORMAÇÕES DO VENDEDOR */}
                             <div className="bg-white mt-6 p-6 rounded-2xl border border-slate-200 shadow-sm">
                                 <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Vendido e Entregue por</h3>
                                 <div className="flex items-center gap-4">
@@ -417,11 +434,3 @@ export default function ProductPage() {
         </main>
     );
 }
-
-function isAvaliacoesResponse(value: unknown): value is AvaliacoesResponse {
-    return typeof value === "object" && value !== null && "avaliacoes" in value;
-}
-function setAdicionando(arg0: boolean) {
-    throw new Error("Function not implemented.");
-}
-
