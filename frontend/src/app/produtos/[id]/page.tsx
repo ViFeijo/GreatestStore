@@ -184,7 +184,7 @@ export default function ProductPage() {
                 console.log("Dados recebidos com sucesso:", data);
                 
                 setProduto(mapProduto(data));
-            } catch (error: any) {
+            } catch (error: unknown) {
                 if (error.name === 'AbortError') {
                     console.log('Busca cancelada (componente desmontou)');
                     return;

@@ -33,7 +33,7 @@ export default function Cadastro() {
     setCarregando(true);
 
     try {
-      const response = await fetch("http://localhost:3010/auth/registrar/cliente", {
+      const response = await fetch("http://localhost:3001/auth/registrar/cliente", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
