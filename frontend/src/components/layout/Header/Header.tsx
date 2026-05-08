@@ -33,6 +33,7 @@ export default function Header() {
     const debounceRef = useRef<number | null>(null);
     const abortRef = useRef<AbortController | null>(null);
     const menuUsuarioTimeoutRef = useRef<number | null>(null);
+    const isMountedRef = useRef(true);
 
     const [sugestoes, setSugestoes] = useState<ProdutoSugestao[]>([]);
     const [mostrarSugestoes, setMostrarSugestoes] = useState(false);
@@ -41,18 +42,26 @@ export default function Header() {
     const [usuarioLogado, setUsuarioLogado] = useState<{ id: string | number; nome: string; role: string } | null>(null);
 
     useEffect(() => {
-        if (typeof window === "undefined") return;
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
+
+    useEffect(() => {
+        if (typeof window === "undefined" || !isMountedRef.current) return;
 
         try {
             const userStr = window.localStorage.getItem("usuario");
             if (!userStr) return;
 
             const parsed = JSON.parse(userStr) as { id?: string | number; nome?: string; role?: string };
-            setUsuarioLogado({
-                id: parsed.id ?? "",
-                nome: parsed.nome ?? "",
-                role: parsed.role ?? "cliente",
-            });
+            if (isMountedRef.current) {
+                setUsuarioLogado({
+                    id: parsed.id ?? "",
+                    nome: parsed.nome ?? "",
+                    role: parsed.role ?? "cliente",
+                });
+            }
         } catch {
             // ignore
         }
