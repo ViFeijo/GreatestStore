@@ -56,6 +56,7 @@ export default function Header() {
 
             const parsed = JSON.parse(userStr) as { id?: string | number; nome?: string; role?: string };
             if (isMountedRef.current) {
+                // eslint-disable-next-line react-hooks/exhaustive-deps
                 setUsuarioLogado({
                     id: parsed.id ?? "",
                     nome: parsed.nome ?? "",
