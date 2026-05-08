@@ -1,23 +1,6 @@
-<<<<<<< HEAD
-require('dotenv').config();
-<<<<<<< HEAD
-
-<<<<<<< HEAD
-
-
-
-
-
-
-=======
-=======
->>>>>>> ab0483d (teste)
-=======
 require('dotenv').config({ path: './Secret.env' });
->>>>>>> e0436dc (feat: estrutura base da API com autenticação de usuário)
 const express = require('express');
 const app = express();
->>>>>>> eea0b89 (Algumas coisa)
 
 app.use(express.json());
 
