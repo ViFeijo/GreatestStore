@@ -294,14 +294,12 @@ export default function CheckoutPage() {
             <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
               <div className="mb-4 flex items-center gap-2">
                 <CreditCard className="h-5 w-5 text-[#7a1a2e]" />
-                <h2 className="font-bold text-slate-950">Pagamento fictício</h2>
+                <h2 className="font-bold text-slate-950">Pagamento hiper blaster ultra mega real</h2>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-3">
                 {[
-                  { value: "pix", label: "Pix", icon: QrCode },
-                  { value: "card", label: "Cartão", icon: CreditCard },
-                  { value: "boleto", label: "Boleto", icon: PackageCheck },
+                  { value: "pix", label: "Pix", icon: QrCode }
                 ].map((option) => {
                   const Icon = option.icon;
                   const selected = payment === option.value;
