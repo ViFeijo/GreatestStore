@@ -47,7 +47,11 @@ function mapProduto(data: BackendProduto): ProdutoDetalhado {
     const imagensSeguras = imagens.length > 0
         ? imagens
         : ["https://via.placeholder.com/600x600?text=Produto"];
-    const descricao = data.descricao?.trim() || "";
+
+    // CORREÇÃO AQUI: Forçamos a conversão para String para evitar o erro .trim()
+    const descricaoRaw = data.descricao;
+    const descricao = typeof descricaoRaw === 'string' ? descricaoRaw.trim() : "";
+
     const topicos = descricao
         ? descricao
             .split(".")
@@ -107,6 +111,46 @@ export default function ProductPage() {
     const [erro, setErro] = useState<string | null>(null);
     const { id } = useParams<{ id: string }>();
 
+    // useEffect(() => {
+    //     const controller = new AbortController();
+
+    //     async function carregarProduto() {
+    //         const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL;
+
+    //         if (!apiBaseUrl) {
+    //             setErro("API nao configurada. Tente novamente mais tarde.");
+    //             setLoading(false);
+    //             return;
+    //         }
+
+    //         try {
+    //             const response = await fetch(`${apiBaseUrl}/produtos/${id}`, {
+    //                 signal: controller.signal,
+    //             });
+
+    //             if (!response.ok) {
+    //                 throw new Error("Nao foi possivel carregar o produto.");
+    //             }
+
+    //             const data = (await response.json()) as BackendProduto;
+    //             setProduto(mapProduto(data));
+    //         } catch (error) {
+    //             if (!controller.signal.aborted) {
+    //                 setErro("Falha ao buscar o produto. Tente novamente.");
+    //             }
+    //         } finally {
+    //             if (!controller.signal.aborted) {
+    //                 setLoading(false);
+    //             }
+    //         }
+    //     }
+
+    //     carregarProduto();
+
+    //     return () => {
+    //         controller.abort();
+    //     };
+    // }, [id]);
     useEffect(() => {
         const controller = new AbortController();
 
@@ -114,26 +158,40 @@ export default function ProductPage() {
             const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL;
 
             if (!apiBaseUrl) {
-                setErro("API nao configurada. Tente novamente mais tarde.");
+                console.error("ERRO: NEXT_PUBLIC_API_URL não está definida no arquivo .env");
+                setErro("Configuração da API ausente.");
                 setLoading(false);
                 return;
             }
 
             try {
-                const response = await fetch(`${apiBaseUrl}/produtos/${id}`, {
+                const url = `${apiBaseUrl.replace(/\/$/, "")}/produtos/${id}`;
+                console.log("Tentando buscar produto em:", url);
+
+                const response = await fetch(url, {
                     signal: controller.signal,
                 });
 
+                console.log("Status da resposta:", response.status);
+
                 if (!response.ok) {
-                    throw new Error("Nao foi possivel carregar o produto.");
+                    const errorText = await response.text();
+                    console.error("Resposta de erro do servidor:", errorText);
+                    throw new Error(`Erro ${response.status}: Não foi possível carregar.`);
                 }
 
                 const data = (await response.json()) as BackendProduto;
+                console.log("Dados recebidos com sucesso:", data);
+                
                 setProduto(mapProduto(data));
-            } catch (error) {
-                if (!controller.signal.aborted) {
-                    setErro("Falha ao buscar o produto. Tente novamente.");
+            } catch (error: any) {
+                if (error.name === 'AbortError') {
+                    console.log('Busca cancelada (componente desmontou)');
+                    return;
                 }
+                
+                console.error("Erro detalhado na requisição:", error);
+                setErro(`Falha ao buscar o produto: ${error.message}`);
             } finally {
                 if (!controller.signal.aborted) {
                     setLoading(false);
@@ -141,12 +199,19 @@ export default function ProductPage() {
             }
         }
 
-        carregarProduto();
+        if (id) {
+            carregarProduto();
+        }
 
         return () => {
             controller.abort();
         };
     }, [id]);
+
+
+
+
+    
 
     if (loading) {
         return (
