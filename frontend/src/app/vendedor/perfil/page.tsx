@@ -48,8 +48,8 @@ export default function PerfilVendedor() {
                 } else {
                     throw new Error("Não foi possível carregar o perfil.");
                 }
-            } catch (err: any) {
-                setMensagem({ tipo: "erro", texto: err.message });
+            } catch (err: unknown) {
+                setMensagem({ tipo: "erro", texto: err instanceof Error ? err.message : "Não foi possível carregar o perfil." });
             } finally {
                 setLoading(false);
             }
@@ -91,7 +91,7 @@ export default function PerfilVendedor() {
             }
             
             setMensagem({ tipo: "sucesso", texto: "Imagem atualizada! Clique em Salvar para manter as alterações." });
-        } catch (err) {
+        } catch {
             setMensagem({ tipo: "erro", texto: "Falha ao fazer upload da imagem." });
         }
     };
@@ -120,8 +120,8 @@ export default function PerfilVendedor() {
             
             setMensagem({ tipo: "sucesso", texto: "Perfil da loja atualizado com sucesso!" });
             setTimeout(() => setMensagem({ tipo: "", texto: "" }), 3000);
-        } catch (err: any) {
-            setMensagem({ tipo: "erro", texto: err.message });
+        } catch (err: unknown) {
+            setMensagem({ tipo: "erro", texto: err instanceof Error ? err.message : "Erro ao salvar as informações." });
         } finally {
             setSalvando(false);
         }

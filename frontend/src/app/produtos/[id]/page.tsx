@@ -4,11 +4,33 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { SideBarDir } from "@/components/SideBarDir";
-import { Info, BookOpen, Star, MessageCircle, User } from "lucide-react";
+import { BookOpen, Star, MessageCircle, User } from "lucide-react";
 import { ProdutoFAQ } from "@/components/FAQ";
 import { ProductGallery } from "@/components/fotosProduto";
 import { ProdutoCarrossel } from "@/components/carrosselProdutos";
 import type { ProdutoDetalhado, ProdutoResumido, PerguntaFrequente, ProdutoListagemApi, ProdutoDetalheApi, ProdutoImagemApi, ItemNavegacao, AvaliacaoApi } from "@/types";
+
+type ProdutoListagemApiComImagem = ProdutoListagemApi & {
+    imagem?: string | null;
+};
+
+type DescricaoBloco = {
+    conteudo?: string | null;
+};
+
+type ProdutoDetalheApiComBlocos = ProdutoDetalheApi & {
+    descricao_blocos?: DescricaoBloco[];
+};
+
+type PerguntaApi = {
+    id?: string | number;
+    pergunta: string;
+    resposta?: string | null;
+};
+
+type AvaliacoesResponse = {
+    avaliacoes?: AvaliacaoApi[];
+};
 
 function toNumber(value: unknown, fallback = 0) {
     if (typeof value === "number") return value;
@@ -19,7 +41,7 @@ function toNumber(value: unknown, fallback = 0) {
     return fallback;
 }
 
-function mapParaResumo(item: ProdutoListagemApi): ProdutoResumido {
+function mapParaResumo(item: ProdutoListagemApiComImagem): ProdutoResumido {
     const pOrig = toNumber(item.preco, 0);
     const pProm = toNumber(item.preco_promocional, pOrig);
     const pAtual = Boolean(item.desconto_ativo) && pProm > 0 ? pProm : pOrig;
@@ -30,20 +52,20 @@ function mapParaResumo(item: ProdutoListagemApi): ProdutoResumido {
         precoAtual: pAtual,
         precoOriginal: pOrig,
         porcentagemDesconto: pOrig > 0 && pAtual < pOrig ? Math.round(((pOrig - pAtual) / pOrig) * 100) : 0,
-        imagem: (item.imagem_url as string) || (item as any).imagem || "https://via.placeholder.com/300x300?text=Sem+Imagem",
+        imagem: item.imagem_url || item.imagem || "https://via.placeholder.com/300x300?text=Sem+Imagem",
         avaliacao: toNumber(item.media_avaliacoes, 5),
         emEstoque: toNumber(item.quantidade) > 0
     };
 }
 
-function mapProduto(data: ProdutoDetalheApi): ProdutoDetalhado {
+    function mapProduto(data: ProdutoDetalheApiComBlocos): ProdutoDetalhado {
     const pOrig = toNumber(data.preco, 0);
     const pAtual = Boolean(data.desconto_ativo) && toNumber(data.preco_promocional) > 0 ? toNumber(data.preco_promocional) : pOrig;
 
     const imagens = (data.imagens ?? []).map((img: ProdutoImagemApi) => img.url).filter(Boolean) as string[];
     let textoFinal = "";
-    if (Array.isArray((data as any).descricao_blocos) && (data as any).descricao_blocos.length > 0) {
-        textoFinal = (data as any).descricao_blocos.map((b: any) => b.conteudo || "").join("\n");
+    if (Array.isArray(data.descricao_blocos) && data.descricao_blocos.length > 0) {
+        textoFinal = data.descricao_blocos.map((b: DescricaoBloco) => b.conteudo || "").join("\n");
     } else if (typeof data.descricao === "string") {
         textoFinal = data.descricao;
     }
@@ -52,10 +74,9 @@ function mapProduto(data: ProdutoDetalheApi): ProdutoDetalhado {
 
     return {
         id: String(data.id),
-        // ROTAS AGORA CLICÁVEIS E APONTANDO PARA A BUSCA
         caminhoNavegacao: [
-            { rotulo: data.categoria_nome || "Categoria", url: `/busca?categoria_id=${data.categoria_id || ''}` },
-            { rotulo: data.subcategoria_nome || "Subcategoria", url: `/busca?subcategoria_id=${data.subcategoria_id || ''}` },
+            ...(data.categoria_id ? [{ rotulo: data.categoria_nome || "Categoria", url: `/busca?categoria_id=${data.categoria_id}` }] : []),
+            ...(data.subcategoria_id ? [{ rotulo: data.subcategoria_nome || "Subcategoria", url: `/busca?subcategoria_id=${data.subcategoria_id}` }] : []),
         ],
         nomeMarca: data.marca_nome || "Marca Geral",
         logoMarca: "",
@@ -112,7 +133,7 @@ export default function ProductPage() {
                 // 1. Busca o Produto Principal
                 const res = await fetch(`${api}/produtos/${id}`, { signal: controller.signal });
                 if (!res.ok) throw new Error("Produto não encontrado.");
-                const data = await res.json();
+                const data = await res.json() as ProdutoDetalheApiComBlocos;
                 setProduto(mapProduto(data));
 
                 // 2. Busca Dados Paralelos (Carrosséis, Avaliações de Texto, Perguntas)
@@ -125,16 +146,16 @@ export default function ProductPage() {
 
                 const [dadosAleatorios, dadosRelacionados, dadosAvals, dadosPerguntas] = await Promise.all(promessas);
 
-                if (Array.isArray(dadosAleatorios)) setAleatorios(dadosAleatorios.map((d: ProdutoListagemApi) => mapParaResumo(d)).filter(p => p.id !== id));
-                if (Array.isArray(dadosRelacionados)) setRelacionados(dadosRelacionados.map((d: ProdutoListagemApi) => mapParaResumo(d)).filter(p => p.id !== id));
+                if (Array.isArray(dadosAleatorios)) setAleatorios((dadosAleatorios as ProdutoListagemApiComImagem[]).map((d) => mapParaResumo(d)).filter(p => p.id !== id));
+                if (Array.isArray(dadosRelacionados)) setRelacionados((dadosRelacionados as ProdutoListagemApiComImagem[]).map((d) => mapParaResumo(d)).filter(p => p.id !== id));
                 
-                if (dadosAvals && Array.isArray((dadosAvals as any).avaliacoes)) setAvaliacoesUsuarios((dadosAvals as any).avaliacoes as AvaliacaoApi[]);
+                if (isAvaliacoesResponse(dadosAvals) && Array.isArray(dadosAvals.avaliacoes)) setAvaliacoesUsuarios(dadosAvals.avaliacoes);
 
                 // Mapeia perguntas do BD para o formato que o Accordion espera
                 if (Array.isArray(dadosPerguntas)) {
-                    const faqsMapeadas = dadosPerguntas
-                        .filter((p: any) => p.resposta) // Mostra no FAQ apenas as que já foram respondidas pelo vendedor
-                        .map((p: any) => ({ id: String(p.id || Math.random()), pergunta: p.pergunta, resposta: p.resposta }));
+                    const faqsMapeadas = (dadosPerguntas as PerguntaApi[])
+                        .filter((p) => p.resposta)
+                        .map((p) => ({ id: String(p.id ?? Math.random()), pergunta: p.pergunta, resposta: p.resposta || "" }));
                     setPerguntasFrequentes(faqsMapeadas);
                 }
 
@@ -145,7 +166,7 @@ export default function ProductPage() {
                 }
 
             } catch (err: unknown) {
-                if ((err as any)?.name !== 'AbortError') setErro(err instanceof Error ? err.message : String(err));
+                if (!(err instanceof DOMException && err.name === "AbortError")) setErro(err instanceof Error ? err.message : String(err));
             } finally {
                 setLoading(false);
             }
@@ -168,7 +189,7 @@ export default function ProductPage() {
             });
             alert("Pergunta enviada ao vendedor!");
             setNovaPergunta("");
-        } catch(err) {
+        } catch {
             alert("Erro ao enviar pergunta.");
         }
     };
@@ -184,7 +205,7 @@ export default function ProductPage() {
             <nav className="bg-white border-b px-4 py-3 mb-8">
                 <div className="max-w-7xl mx-auto flex gap-2 text-sm text-slate-500 font-medium">
                     <Link href="/" className="hover:text-red-600 transition-colors">Home</Link> &gt; 
-                    {produto.caminhoNavegacao.map((item: any, index: number) => (
+                    {produto.caminhoNavegacao.map((item: ItemNavegacao, index: number) => (
                         <span key={index}>
                             <Link href={item.url} className="hover:text-red-600 transition-colors">{item.rotulo}</Link>
                             {index < produto.caminhoNavegacao.length - 1 && " > "}
@@ -260,7 +281,7 @@ export default function ProductPage() {
                                 <p className="text-slate-500 italic">Seja o primeiro a avaliar este produto!</p>
                             ) : (
                                 <div className="space-y-6">
-                                    {avaliacoesUsuarios.map((av: any, i: number) => (
+                                    {avaliacoesUsuarios.map((av: AvaliacaoApi, i: number) => (
                                         <div key={i} className="border-b border-slate-100 pb-6 last:border-0 last:pb-0">
                                             <div className="flex items-center gap-3 mb-2">
                                                 <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center text-slate-500 font-bold uppercase">
@@ -269,9 +290,12 @@ export default function ProductPage() {
                                                 <div>
                                                     <p className="font-bold text-sm text-slate-900">{av.usuario_nome}</p>
                                                     <div className="flex">
-                                                        {[...Array(5)].map((_, idx) => (
-                                                            <Star key={idx} size={12} className={idx < av.nota ? "fill-yellow-400 text-yellow-400" : "fill-slate-200 text-slate-200"} />
-                                                        ))}
+                                                        {(() => {
+                                                            const notaUsuario = toNumber(av.nota, 0);
+                                                            return [...Array(5)].map((_, idx) => (
+                                                                <Star key={idx} size={12} className={idx < notaUsuario ? "fill-yellow-400 text-yellow-400" : "fill-slate-200 text-slate-200"} />
+                                                            ));
+                                                        })()}
                                                     </div>
                                                 </div>
                                             </div>
@@ -353,4 +377,8 @@ export default function ProductPage() {
             </div>
         </main>
     );
+}
+
+function isAvaliacoesResponse(value: unknown): value is AvaliacoesResponse {
+    return typeof value === "object" && value !== null && "avaliacoes" in value;
 }

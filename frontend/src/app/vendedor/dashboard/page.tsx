@@ -7,30 +7,38 @@ import {
     LayoutDashboard, Edit, Eye, Tag, AlertCircle
 } from "lucide-react";
 
-// Tipos baseados nas suas Views (vista_vendas_diarias e vista_vendas_produtos)
-type EstatisticasDiarias = {
-    data_venda: string;
-    numero_vendas_dia: number;
-    faturamento_dia: number;
+type ProdutoVendido = {
+    id: string | number;
+    nome: string;
+    produto_id?: string;
+    produto_nome?: string;
+    modelo?: string;
+    marca_nome?: string;
+    total_unidades_vendidas?: number;
+    faturamento_total_produto?: number;
+    quantidade?: number;
+    quantidade_estoque?: number;
+    preco: number | string;
+    imagem_url?: string;
 };
 
-type ProdutoVendido = {
+type ProdutoFormatado = {
     produto_id: string;
     produto_nome: string;
     modelo: string;
     marca_nome: string;
     total_unidades_vendidas: number;
     faturamento_total_produto: number;
-    quantidade_estoque: number; // Vem da tabela de produtos original
+    quantidade_estoque: number;
     preco: number;
-    imagem_url?: string;
+    imagem_url: string;
 };
 
 export default function DashboardVendedor() {
     const [loading, setLoading] = useState(true);
     const [erro, setErro] = useState<string | null>(null);
     const [estatisticas, setEstatisticas] = useState({ faturamentoTotal: 0, totalVendas: 0 });
-    const [produtos, setProdutos] = useState<ProdutoVendido[]>([]);
+    const [produtos, setProdutos] = useState<ProdutoFormatado[]>([]);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -57,7 +65,7 @@ export default function DashboardVendedor() {
 
                 const produtosFormatados = dadosProdutos.map((p: ProdutoVendido) => {
                     // Simulando os dados da vista_vendas_produtos (total_unidades_vendidas)
-                    const vendidas = (p as any).total_unidades_vendidas || Math.floor(Math.random() * 50);
+                    const vendidas = p.total_unidades_vendidas || Math.floor(Math.random() * 50);
                     const fatProduto = vendidas * Number(p.preco);
 
                     faturamento += fatProduto;
@@ -70,7 +78,7 @@ export default function DashboardVendedor() {
                         marca_nome: p.marca_nome || "Sem Marca",
                         total_unidades_vendidas: vendidas,
                         faturamento_total_produto: fatProduto,
-                        quantidade_estoque: (p as any).quantidade,
+                        quantidade_estoque: p.quantidade || 0,
                         preco: Number(p.preco),
                         imagem_url: p.imagem_url || "https://via.placeholder.com/150"
                     };
@@ -80,7 +88,7 @@ export default function DashboardVendedor() {
                 setEstatisticas({ faturamentoTotal: faturamento, totalVendas: vendas });
 
             } catch (err: unknown) {
-                if ((err as any)?.name !== 'AbortError') setErro(err instanceof Error ? err.message : String(err));
+                if (!(err instanceof DOMException && err.name === "AbortError")) setErro(err instanceof Error ? err.message : String(err));
             } finally {
                 setLoading(false);
             }
@@ -177,7 +185,7 @@ export default function DashboardVendedor() {
                                         <div className="flex items-center gap-2">
                                             <span className="font-bold text-sm text-slate-700">{prod.quantidade_estoque}</span>
                                             {prod.quantidade_estoque <= 5 && prod.quantidade_estoque > 0 && (
-                                                <AlertCircle size={14} className="text-orange-500" title="Estoque baixo" />
+                                                <AlertCircle size={14} className="text-orange-500" />
                                             )}
                                             {prod.quantidade_estoque === 0 && (
                                                 <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-red-100 text-red-700">Esgotado</span>

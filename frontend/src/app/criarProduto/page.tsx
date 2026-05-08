@@ -3,14 +3,15 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Info, BookOpen, Save, Plus, Trash2, Image as ImageIcon, Package, Tag, DollarSign, Layers } from "lucide-react";
+import type { ApiErrorResponse, CategoriaApi, SubcategoriaApi } from "@/types";
 
 export default function CriarProdutoPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [erro, setErro] = useState<string | null>(null);
 
-    const [categorias, setCategorias] = useState<any[]>([]);
-    const [subcategorias, setSubcategorias] = useState<any[]>([]);
+    const [categorias, setCategorias] = useState<CategoriaApi[]>([]);
+    const [subcategorias, setSubcategorias] = useState<SubcategoriaApi[]>([]);
 
     const [formData, setFormData] = useState({
         nome: "",
@@ -32,7 +33,7 @@ export default function CriarProdutoPage() {
             try {
                 const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categorias`);
                 if (res.ok) setCategorias(await res.json());
-            } catch (err) {
+            } catch {
                 console.error("Erro ao carregar categorias");
             }
         }
@@ -50,7 +51,7 @@ export default function CriarProdutoPage() {
             // CORREÇÃO DO BUG: A rota correta do seu backend é /subcategorias/categoria/:id
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/subcategorias/categoria/${catId}`);
             if (res.ok) setSubcategorias(await res.json());
-        } catch (err) {
+        } catch {
             console.error("Erro ao carregar subcategorias");
         }
     };
@@ -103,8 +104,15 @@ export default function CriarProdutoPage() {
                 body: JSON.stringify(payloadProduto)
             });
 
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Erro ao criar produto");
+            const responseData = await res.json() as unknown;
+            if (!res.ok) {
+                const message = typeof responseData === "object" && responseData !== null && "error" in responseData && typeof (responseData as { error?: unknown }).error === "string"
+                    ? (responseData as { error: string }).error
+                    : "Erro ao criar produto";
+                throw new Error(message);
+            }
+
+            const data = responseData as { id: string | number };
 
             if (imagens.length > 0) {
                 const uploadPromises = imagens.map((img, index) => {
@@ -123,8 +131,8 @@ export default function CriarProdutoPage() {
             }
 
             router.push(`/produtos/${data.id}`);
-        } catch (err: any) {
-            setErro(err.message);
+        } catch (err: unknown) {
+            setErro(err instanceof Error ? err.message : "Erro ao criar produto");
         } finally {
             setLoading(false);
         }
