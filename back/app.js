@@ -1,9 +1,24 @@
-require('dotenv').config({ path: './Secret.env' });
+const path = require('path');
+
+require('dotenv').config({ path: path.join(__dirname, 'Secret.env') });
 const express = require('express');
 const app = express();
 
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000,http://localhost:3001')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+  const origin = req.headers.origin;
+
+  if (
+    origin &&
+    (allowedOrigins.includes(origin) || /^http:\/\/localhost:\d+$/.test(origin))
+  ) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') {
@@ -11,6 +26,9 @@ app.use((req, res, next) => {
   }
   next();
 });
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 const authRoutes = require('./routes/authRoutes');
 const usuarioRoutes = require('./routes/usuarioRoutes');
@@ -48,6 +66,8 @@ app.use('/avaliacoes', avaliacaoRoutes);
 app.use('/favoritos', favoritosRoutes);
 app.use('/pagamentos', pagamentoRoutes);
 
-app.listen(process.env.PORT, () => {
-  console.log(`Servidor rodando na porta ${process.env.PORT}`);
+const port = process.env.PORT || 3010;
+
+app.listen(port, () => {
+  console.log(`Servidor rodando na porta ${port}`);
 });
