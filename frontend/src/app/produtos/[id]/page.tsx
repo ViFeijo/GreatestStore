@@ -7,13 +7,9 @@ import { SideBarDir } from "@/components/SideBarDir";
 import { BookOpen, Star, MessageCircle, User } from "lucide-react";
 import { ProdutoFAQ } from "@/components/FAQ";
 import { ProductGallery } from "@/components/fotosProduto";
-<<<<<<< Updated upstream
 import { ProdutoCarrossel } from "@/components/carrosselProdutos";
 import type { ProdutoDetalhado, ProdutoResumido, PerguntaFrequente, ProdutoListagemApi, ProdutoDetalheApi, ProdutoImagemApi, ItemNavegacao, AvaliacaoApi } from "@/types";
-=======
-import type { ProdutoDetalhado } from "@/types";
 import { addCartItem } from "@/lib/cart";
->>>>>>> Stashed changes
 
 type ProdutoListagemApiComImagem = ProdutoListagemApi & {
     imagem?: string | null;
@@ -63,7 +59,7 @@ function mapParaResumo(item: ProdutoListagemApiComImagem): ProdutoResumido {
     };
 }
 
-    function mapProduto(data: ProdutoDetalheApiComBlocos): ProdutoDetalhado {
+function mapProduto(data: ProdutoDetalheApiComBlocos): ProdutoDetalhado {
     const pOrig = toNumber(data.preco, 0);
     const pAtual = Boolean(data.desconto_ativo) && toNumber(data.preco_promocional) > 0 ? toNumber(data.preco_promocional) : pOrig;
 
@@ -118,7 +114,7 @@ export default function ProductPage() {
     const [produto, setProduto] = useState<ProdutoDetalhado | null>(null);
     const [relacionados, setRelacionados] = useState<ProdutoResumido[]>([]);
     const [aleatorios, setAleatorios] = useState<ProdutoResumido[]>([]);
-    
+
     // Novos Estados
     const [avaliacoesUsuarios, setAvaliacoesUsuarios] = useState<AvaliacaoApi[]>([]);
     const [perguntasFrequentes, setPerguntasFrequentes] = useState<PerguntaFrequente[]>([]);
@@ -126,63 +122,8 @@ export default function ProductPage() {
 
     const [loading, setLoading] = useState(true);
     const [erro, setErro] = useState<string | null>(null);
+    const [adicionando, setAdicionando] = useState(false);
 
-<<<<<<< Updated upstream
-=======
-    function handleAddToCart(quantidade: number) {
-        if (!produto) return;
-
-        addCartItem({
-            id: produto.id,
-            name: produto.nomeProduto,
-            seller: produto.vendedor.nome,
-            price: produto.valores.precoAtual,
-            image: produto.imagens[0] ?? "https://via.placeholder.com/600x600?text=Produto",
-            quantity: quantidade,
-        });
-    }
-
-    // useEffect(() => {
-    //     const controller = new AbortController();
-
-    //     async function carregarProduto() {
-    //         const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL;
-
-    //         if (!apiBaseUrl) {
-    //             setErro("API nao configurada. Tente novamente mais tarde.");
-    //             setLoading(false);
-    //             return;
-    //         }
-
-    //         try {
-    //             const response = await fetch(`${apiBaseUrl}/produtos/${id}`, {
-    //                 signal: controller.signal,
-    //             });
-
-    //             if (!response.ok) {
-    //                 throw new Error("Nao foi possivel carregar o produto.");
-    //             }
-
-    //             const data = (await response.json()) as BackendProduto;
-    //             setProduto(mapProduto(data));
-    //         } catch (error) {
-    //             if (!controller.signal.aborted) {
-    //                 setErro("Falha ao buscar o produto. Tente novamente.");
-    //             }
-    //         } finally {
-    //             if (!controller.signal.aborted) {
-    //                 setLoading(false);
-    //             }
-    //         }
-    //     }
-
-    //     carregarProduto();
-
-    //     return () => {
-    //         controller.abort();
-    //     };
-    // }, [id]);
->>>>>>> Stashed changes
     useEffect(() => {
         if (!id) return;
         const controller = new AbortController();
@@ -190,7 +131,7 @@ export default function ProductPage() {
         async function fetchTudo() {
             try {
                 const api = process.env.NEXT_PUBLIC_API_URL;
-                
+
                 // 1. Busca o Produto Principal
                 const res = await fetch(`${api}/produtos/${id}`, { signal: controller.signal });
                 if (!res.ok) throw new Error("Produto não encontrado.");
@@ -209,7 +150,7 @@ export default function ProductPage() {
 
                 if (Array.isArray(dadosAleatorios)) setAleatorios((dadosAleatorios as ProdutoListagemApiComImagem[]).map((d) => mapParaResumo(d)).filter(p => p.id !== id));
                 if (Array.isArray(dadosRelacionados)) setRelacionados((dadosRelacionados as ProdutoListagemApiComImagem[]).map((d) => mapParaResumo(d)).filter(p => p.id !== id));
-                
+
                 if (isAvaliacoesResponse(dadosAvals) && Array.isArray(dadosAvals.avaliacoes)) setAvaliacoesUsuarios(dadosAvals.avaliacoes);
 
                 // Mapeia perguntas do BD para o formato que o Accordion espera
@@ -222,8 +163,8 @@ export default function ProductPage() {
 
                 // 3. (Opcional) Registrar Histórico de Navegação
                 const token = localStorage.getItem("token");
-                if(token) {
-                    fetch(`${api}/historico/registrar/${id}`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } }).catch(()=>{});
+                if (token) {
+                    fetch(`${api}/historico/registrar/${id}`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } }).catch(() => { });
                 }
 
             } catch (err: unknown) {
@@ -236,12 +177,48 @@ export default function ProductPage() {
         fetchTudo();
         return () => controller.abort();
     }, [id]);
+        const handleAdicionarCarrinho = async (quantidade: number) => {
+        // Adiciona ao carrinho local imediatamente para atualizar a UI
+        if (produto) {
+            addCartItem({
+                id: produto.id,
+                name: produto.nomeProduto,
+                seller: produto.vendedor.nome,
+                price: produto.valores.precoAtual,
+                image: produto.imagens?.[0] || "",
+                quantity: quantidade,
+            });
+        }
+
+        // Tenta sincronizar com o servidor se o usuário estiver logado
+        const token = localStorage.getItem("token");
+        if (!token) return; // não bloqueia a ação local se não houver token
+ 
+        setAdicionando(true);
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/carrinho`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ produto_id: id, quantidade }),
+            });
+ 
+            if (!res.ok) throw new Error();
+        } catch {
+            // Falha na sincronização não impede a adição local
+            alert("Erro ao sincronizar o carrinho com o servidor.");
+        } finally {
+            setAdicionando(false);
+        }
+    };
 
     const handleEnviarPergunta = async (e: React.FormEvent) => {
         e.preventDefault();
         const token = localStorage.getItem("token");
         if (!token) return alert("Faça login para perguntar!");
-        
+
         try {
             await fetch(`${process.env.NEXT_PUBLIC_API_URL}/perguntas/produto/${id}`, {
                 method: 'POST',
@@ -265,7 +242,7 @@ export default function ProductPage() {
             {/* Breadcrumbs - AGORA CLICÁVEIS */}
             <nav className="bg-white border-b px-4 py-3 mb-8">
                 <div className="max-w-7xl mx-auto flex gap-2 text-sm text-slate-500 font-medium">
-                    <Link href="/" className="hover:text-red-600 transition-colors">Home</Link> &gt; 
+                    <Link href="/" className="hover:text-red-600 transition-colors">Home</Link> &gt;
                     {produto.caminhoNavegacao.map((item: ItemNavegacao, index: number) => (
                         <span key={index}>
                             <Link href={item.url} className="hover:text-red-600 transition-colors">{item.rotulo}</Link>
@@ -277,7 +254,7 @@ export default function ProductPage() {
 
             <div className="container mx-auto px-4 max-w-7xl">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    
+
                     {/* COLUNA ESQUERDA (Fotos e Título) */}
                     <div className="lg:col-span-8 space-y-6">
                         <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
@@ -294,7 +271,7 @@ export default function ProductPage() {
                                 <div className="md:w-1/2 space-y-4">
                                     <p className="text-red-600 font-bold uppercase text-xs tracking-widest">{produto.nomeMarca}</p>
                                     <h1 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight">{produto.nomeProduto}</h1>
-                                    
+
                                     {/* Estrelas */}
                                     <div className="flex items-center gap-2">
                                         <div className="flex items-center">
@@ -308,7 +285,7 @@ export default function ProductPage() {
                                     </div>
 
                                     <hr className="border-slate-100" />
-                                    
+
                                     <div className="space-y-3">
                                         <h3 className="font-bold text-slate-900">Destaques:</h3>
                                         <ul className="space-y-2">
@@ -367,18 +344,17 @@ export default function ProductPage() {
                             )}
                         </div>
 
-<<<<<<< Updated upstream
                         {/* PERGUNTAS E RESPOSTAS (Usando o Accordion que você mandou e input novo) */}
                         <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
                             <h2 className="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3">
                                 <MessageCircle size={28} className="text-red-600" /> Perguntas ao Vendedor
                             </h2>
-                            
+
                             <form onSubmit={handleEnviarPergunta} className="flex gap-3 mb-8">
-                                <input 
-                                    type="text" 
+                                <input
+                                    type="text"
                                     required
-                                    placeholder="O que você quer saber sobre este produto?" 
+                                    placeholder="O que você quer saber sobre este produto?"
                                     className="flex-1 border border-slate-300 rounded-lg px-4 py-3 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 text-sm"
                                     value={novaPergunta}
                                     onChange={e => setNovaPergunta(e.target.value)}
@@ -387,18 +363,6 @@ export default function ProductPage() {
                                     Perguntar
                                 </button>
                             </form>
-=======
-                {/* Coluna Direita - Sidebar (1 coluna, ocupa 2 linhas) */}
-                <div className="lg:col-span-1 lg:row-span-2">
-                    <SideBarDir
-                        valores={produto.valores}
-                        vendedor={produto.vendedor}
-                        emEstoque={produto.emEstoque}
-                        textoPreviaFrete={produto.textoPreviaFrete}
-                        onAddToCart={handleAddToCart}
-                    />
-                </div>
->>>>>>> Stashed changes
 
                             {perguntasFrequentes.length > 0 ? (
                                 <ProdutoFAQ faqs={perguntasFrequentes} />
@@ -412,10 +376,12 @@ export default function ProductPage() {
                     <div className="lg:col-span-4 space-y-6">
                         <div className="sticky top-24">
                             <SideBarDir
+                                produtoId={produto.id}
                                 valores={produto.valores}
                                 vendedor={produto.vendedor}
                                 emEstoque={produto.emEstoque}
                                 textoPreviaFrete={produto.textoPreviaFrete}
+                                onAddToCart={handleAdicionarCarrinho}
                             />
 
                             {/* CARD DE INFORMAÇÕES DO VENDEDOR (Logo Abaixo da Compra) */}
@@ -431,7 +397,7 @@ export default function ProductPage() {
                                     </div>
                                     <div>
                                         <p className="font-bold text-slate-900 flex items-center gap-1">
-                                            {produto.vendedor.nome} 
+                                            {produto.vendedor.nome}
                                             {produto.vendedor.lojaOficial && <span className="text-blue-500" title="Loja Verificada">✓</span>}
                                         </p>
                                         <p className="text-xs text-slate-500 font-medium">{produto.vendedor.textoQuantidadeVendas}</p>
@@ -452,10 +418,7 @@ export default function ProductPage() {
         </main>
     );
 }
-<<<<<<< Updated upstream
 
 function isAvaliacoesResponse(value: unknown): value is AvaliacoesResponse {
     return typeof value === "object" && value !== null && "avaliacoes" in value;
 }
-=======
->>>>>>> Stashed changes

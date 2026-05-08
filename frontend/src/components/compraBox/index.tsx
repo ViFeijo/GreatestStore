@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Plus, Minus, Truck, ShieldCheck, X } from "lucide-react";
 import { Button } from "../ui/button";
@@ -8,6 +8,7 @@ import { InformacoesPreco, InformacoesVendedor } from "@/types";
 import { getCartItems } from "@/lib/cart";
 
 interface CompraBoxProps {
+    produtoId?: string | number;
     valores: InformacoesPreco;
     vendedor: InformacoesVendedor;
     emEstoque: boolean;
@@ -16,6 +17,7 @@ interface CompraBoxProps {
 }
 
 export function CompraBox({
+    produtoId,
     valores,
     vendedor,
     emEstoque,
@@ -28,12 +30,58 @@ export function CompraBox({
     const quantidadeTotal = itensCarrinho.reduce((total, item) => total + item.quantity, 0);
     const subtotal = itensCarrinho.reduce((total, item) => total + item.price * item.quantity, 0);
 
+    const [favoritado, setFavoritado] = useState<boolean>(false);
+    const [favLoading, setFavLoading] = useState(false);
+
+    async function carregarFavorito() {
+        const resolvedId = produtoId ?? (typeof window !== 'undefined' ? String(window.location.pathname.split('/').filter(Boolean).pop()) : null);
+        if (!resolvedId) return;
+        const token = typeof window !== "undefined" ? window.localStorage.getItem("token") : null;
+        if (!token) return;
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/favoritos/${resolvedId}`, { headers: { Authorization: `Bearer ${token}` } });
+            if (!res.ok) return;
+            const data = await res.json();
+            setFavoritado(Boolean(data?.favoritado));
+        } catch {
+            // ignore
+        }
+    }
+
+    async function toggleFavorito() {
+        // resolve produto id from prop or URL path fallback
+        const resolvedId = produtoId ?? (typeof window !== 'undefined' ? String(window.location.pathname.split('/').filter(Boolean).pop()) : null);
+        if (!resolvedId) return alert("Produto inválido para favoritar.");
+        const token = typeof window !== "undefined" ? window.localStorage.getItem("token") : null;
+        if (!token) return alert("Faça login para favoritar.");
+
+        setFavLoading(true);
+        try {
+            if (!favoritado) {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/favoritos/${resolvedId}`, { method: "POST", headers: { Authorization: `Bearer ${token}` } });
+                if (!res.ok) throw new Error();
+                setFavoritado(true);
+            } else {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/favoritos/${resolvedId}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+                if (!res.ok) throw new Error();
+                setFavoritado(false);
+            }
+        } catch (err) {
+            alert("Erro ao atualizar favorito.");
+        } finally {
+            setFavLoading(false);
+        }
+    }
+
     function handleAddToCart() {
         if (!emEstoque || !onAddToCart) return;
 
         onAddToCart(quantidade);
         setModalAberto(true);
     }
+
+    // carrega estado do favorito ao montar
+    useEffect(() => { carregarFavorito(); }, [produtoId]);
 
     return (
         <div className="bg-white rounded-lg p-6 space-y-6 shadow-sm border border-gray-200">
@@ -105,12 +153,14 @@ export function CompraBox({
                 >
                     {emEstoque ? "Comprar" : "Fora de Estoque"}
                 </Button>
-                <Button
-                    variant="outline"
-                    className="w-full py-6 text-lg font-bold border-2 border-gray-300"
+                <button
+                    type="button"
+                    onClick={toggleFavorito}
+                    disabled={favLoading}
+                    className={`w-full py-4 text-lg font-bold rounded ${favoritado ? "bg-red-100 text-red-700" : "border-2 border-gray-300 bg-white text-gray-800 hover:bg-gray-50"}`}
                 >
-                    ❤️ Favoritar
-                </Button>
+                    {favoritado ? "❤️ Favoritado" : "🤍 Favoritar"}
+                </button>
             </div>
 
             {/* Informações do Vendedor */}

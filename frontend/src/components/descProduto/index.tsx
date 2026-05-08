@@ -163,6 +163,7 @@ export function DescricaoProduto({ produto }: DescricaoProdutoProps) {
           {/* Coluna Direita - Sidebar Fixa */}
           <div className="lg:col-span-1">
             <SideBarDir
+              produtoId={produto.id}
               valores={produto.valores}
               vendedor={produto.vendedor}
               emEstoque={produto.emEstoque}

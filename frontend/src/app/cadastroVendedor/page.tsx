@@ -9,18 +9,18 @@ export default function CadastroVendedor() {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
-  // Step 1 - Dados de acesso
+
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [cnpj, setCnpj] = useState("");
 
-  // Step 2 - Dados da empresa
+
   const [nomeFantasia, setNomeFantasia] = useState("");
   const [razaoSocial, setRazaoSocial] = useState("");
   const [fotoPerfilUrl, setFotoPerfilUrl] = useState("");
   const [bannerUrl, setBannerUrl] = useState("");
 
-  // Step 3 - Endereço
+
   const [cep, setCep] = useState("");
   const [rua, setRua] = useState("");
   const [numero, setNumero] = useState("");
@@ -60,7 +60,7 @@ export default function CadastroVendedor() {
     setErro("");
     setSucesso("");
 
-    // validate all steps before sending
+
     const prevStep = step;
     for (let s = 1; s <= 3; s++) {
       if (s === 1) {
@@ -114,7 +114,7 @@ export default function CadastroVendedor() {
       if (!response.ok) throw new Error(data.error || "Erro ao criar cadastro de vendedor.");
 
       setSucesso("Cadastro de vendedor criado com sucesso.");
-      // reset fields
+
       setStep(1);
       setEmail("");
       setSenha("");
@@ -192,7 +192,17 @@ export default function CadastroVendedor() {
                 <div />
                 <button type="button" onClick={() => { if (validarStepAtual()) setStep(2); }} className="bg-[#7a1a2e] hover:bg-[#5e1224] text-white font-semibold rounded-lg py-2 px-4 transition text-sm">Próximo</button>
               </div>
+              <p className="text-center text-sm text-gray-500 mt-5">
+                Já tem conta?{" "}
+                <a
+                  href="/login"
+                  className="text-[#7a1a2e] font-semibold hover:underline"
+                >
+                  Entrar
+                </a>
+              </p>
             </div>
+
           )}
 
           {step === 2 && (

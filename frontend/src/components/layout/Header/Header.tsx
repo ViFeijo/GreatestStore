@@ -38,23 +38,25 @@ export default function Header() {
     const [mostrarSugestoes, setMostrarSugestoes] = useState(false);
     const [carregandoSugestoes, setCarregandoSugestoes] = useState(false);
 
-    const [usuarioLogado, setUsuarioLogado] = useState<{ id: string | number; nome: string; role: string } | null>(() => {
-        if (typeof window === "undefined") return null;
+    const [usuarioLogado, setUsuarioLogado] = useState<{ id: string | number; nome: string; role: string } | null>(null);
 
-        const userStr = window.localStorage.getItem("usuario");
-        if (!userStr) return null;
+    useEffect(() => {
+        if (typeof window === "undefined") return;
 
         try {
+            const userStr = window.localStorage.getItem("usuario");
+            if (!userStr) return;
+
             const parsed = JSON.parse(userStr) as { id?: string | number; nome?: string; role?: string };
-            return {
+            setUsuarioLogado({
                 id: parsed.id ?? "",
                 nome: parsed.nome ?? "",
                 role: parsed.role ?? "cliente",
-            };
+            });
         } catch {
-            return null;
+            // ignore
         }
-    });
+    }, []);
     const [menuUsuarioAberto, setMenuUsuarioAberto] = useState(false);
 
     const [categorias, setCategorias] = useState<Categoria[]>([]);
@@ -101,9 +103,9 @@ export default function Header() {
 
     const handleAnunciar = () => {
         if (usuarioLogado?.role === "vendedor") {
-            router.push("/vendedor/produtos/novo");
+            router.push("criarProduto");
         } else {
-            router.push("/login?tipo=vendedor");
+            router.push("/cadastroVendedor");
         }
     };
 
@@ -271,12 +273,6 @@ export default function Header() {
                             </div>
                         )}
                     </form>
-<<<<<<< Updated upstream
-=======
-                    <Link href="/cadastroVendedor">
-                        <button className="rounded-full bg-[#e8940a] px-5 py-2 text-sm font-bold text-white transition hover:bg-[#d4840a]">Anunciar</button>
-                    </Link>
->>>>>>> Stashed changes
 
                     <div className="flex items-center gap-3 shrink-0">
                         <button
@@ -290,7 +286,7 @@ export default function Header() {
                             <Heart className="h-6 w-6" strokeWidth={1.5} />
                         </Link>
 
-                        <Link href="/carrinho" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/15 hover:text-[#e8c37d] relative">
+                        <Link href="/cart" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/15 hover:text-[#e8c37d] relative">
                             <ShoppingCart className="h-6 w-6" strokeWidth={1.5} />
                         </Link>
 

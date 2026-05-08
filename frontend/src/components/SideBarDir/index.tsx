@@ -5,6 +5,7 @@ import { CompraBox } from "@/components/compraBox";
 import { InformacoesPreco, InformacoesVendedor } from "@/types";
 
 interface SideBarDirProps {
+  produtoId?: string | number;
   valores: InformacoesPreco;
   vendedor: InformacoesVendedor;
   emEstoque: boolean;
@@ -14,6 +15,7 @@ interface SideBarDirProps {
 }
 
 export function SideBarDir({
+  produtoId,
   valores,
   vendedor,
   emEstoque,
@@ -23,7 +25,7 @@ export function SideBarDir({
 }: SideBarDirProps) {
   return (
     // A classe sticky faz ela ficar fixa ao rolar a página
-    <aside className="w-full lg:max-w-100 shrink-0 sticky top-10 flex-col gap-4 z-40">
+    <aside className="w-full lg:w-[480px] shrink-0 sticky top-10 flex-col gap-4 z-40">
       
       {/* Banner Promocional do Topo da Sidebar (se existir) */}
       {urlBannerPromocional && (
@@ -35,6 +37,7 @@ export function SideBarDir({
 
       {/* O seu componente de compra entra aqui dentro! */}
       <CompraBox 
+        produtoId={produtoId}
         valores={valores}
         vendedor={vendedor}
         emEstoque={emEstoque}

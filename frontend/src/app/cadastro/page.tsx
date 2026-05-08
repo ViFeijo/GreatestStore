@@ -255,7 +255,7 @@ export default function Cadastro() {
           </button>
 
 
-          <p className="text-center text-sm text-gray-500 mt-5">
+          <p className="text-right text-sm text-gray-500 mt-5">
             Já tem conta?{" "}
             <a
               href="/login"
