@@ -21,12 +21,15 @@ export interface InformacoesPreco {
 }
 
 export interface InformacoesVendedor {
+    id?: string | number;
     nome: string;               // Ex: "Asus"
     lojaOficial: boolean;       // Adiciona o selo azul de verificado
     textoQuantidadeVendas: string; // "+50mil vendas"
     politicaDevolucao: string;  // "Você tem 30 dias a partir do recebimento"
     garantia: string;           // "Receba o produto que está esperando..."
     mesesGarantia: number;      // 12
+    fotoPerfil?: string | null;
+    banner?: string | null;
 }
 
 export interface ResumoAvaliacoes {
@@ -239,6 +242,7 @@ export interface ProdutoDetalheApi extends ProdutoBaseApi {
     vendedor_foto?: string | null;
     vendedor_banner?: string | null;
     subcategoria_nome?: string | null;
+    categoria_id?: string | number | null;
     categoria_nome?: string | null;
     marca_nome?: string | null;
     media_avaliacoes?: number | string | null;

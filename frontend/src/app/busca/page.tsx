@@ -4,23 +4,27 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Star, Filter, Search } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import type { ProdutoResumido } from "@/types";
+import type { ProdutoResumido, ProdutoListagemApi, MarcaApi, CategoriaApi, SubcategoriaApi } from "@/types";
 
 type Ordenacao = "mais_recentes" | "menor_preco" | "maior_preco";
 const DEFAULT_MAX_PRECO = 10000;
 
-function toNumber(value: any, fallback = 0) {
-    const parsed = typeof value === "number" ? value : Number.parseFloat(value ?? "");
-    return Number.isFinite(parsed) ? parsed : fallback;
+function toNumber(value: unknown, fallback = 0) {
+    if (typeof value === "number") return value;
+    if (typeof value === "string") {
+        const parsed = Number.parseFloat(value.replace(',', '.'));
+        return Number.isFinite(parsed) ? parsed : fallback;
+    }
+    return fallback;
 }
 
-function mapParaResumo(p: any): ProdutoResumido {
+function mapParaResumo(p: ProdutoListagemApi): ProdutoResumido {
     const precoOriginal = toNumber(p.preco, 0);
     const precoPromocional = toNumber(p.preco_promocional, precoOriginal);
     const precoAtual = Boolean(p.desconto_ativo) && precoPromocional > 0 ? precoPromocional : precoOriginal;
 
     return {
-        id: p.id,
+        id: String(p.id),
         nome: p.nome,
         precoAtual,
         precoOriginal,
@@ -39,9 +43,9 @@ export default function PaginaBusca() {
     const catParam = searchParams.get("categoria_id") || "";
     const subParam = searchParams.get("subcategoria_id") || "";
     
-    const [marcasCatalogo, setMarcasCatalogo] = useState<any[]>([]);
-    const [categoriasCatalogo, setCategoriasCatalogo] = useState<any[]>([]);
-    const [subcategoriasCatalogo, setSubcategoriasCatalogo] = useState<any[]>([]);
+    const [marcasCatalogo, setMarcasCatalogo] = useState<MarcaApi[]>([]);
+    const [categoriasCatalogo, setCategoriasCatalogo] = useState<CategoriaApi[]>([]);
+    const [subcategoriasCatalogo, setSubcategoriasCatalogo] = useState<SubcategoriaApi[]>([]);
 
     const [brandSearchTerm, setBrandSearchTerm] = useState("");
     const [categorySearchTerm, setCategorySearchTerm] = useState("");
@@ -104,19 +108,19 @@ export default function PaginaBusca() {
                 if (!res.ok) throw new Error("Erro na busca");
 
                 const data = await res.json();
-                const lista = Array.isArray(data) ? data : (data.produtos || []);
+                const lista = Array.isArray(data) ? data as ProdutoListagemApi[] : (data.produtos || []) as ProdutoListagemApi[];
                 setProdutosApi(lista);
                 setTotalResultados(Array.isArray(data) ? (lista[0]?.total_resultados || lista.length) : (data.total || lista.length));
 
                 if (lista.length > 0 && maxPrecoHistorico === DEFAULT_MAX_PRECO) {
-                    const maior = Math.max(...lista.map((p: any) => toNumber(p.preco)));
+                    const maior = Math.max(...lista.map((p: ProdutoListagemApi) => toNumber(p.preco)));
                     if (maior > 0) {
                         setMaxPrecoHistorico(Math.ceil(maior));
                         setPriceRange(prev => ({ ...prev, max: Math.ceil(maior) }));
                     }
                 }
-            } catch (e: any) {
-                if (e.name !== "AbortError") console.error(e);
+            } catch (e: unknown) {
+                if ((e as any)?.name !== "AbortError") console.error(e);
             } finally {
                 setLoading(false);
             }

@@ -33,7 +33,7 @@ export default function Cadastro() {
     setCarregando(true);
 
     try {
-      const response = await fetch("http://localhost:3001/auth/registrar/cliente", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/registrar/cliente`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

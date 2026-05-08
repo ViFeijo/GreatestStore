@@ -8,38 +8,42 @@ import { Info, BookOpen, Star, MessageCircle, User } from "lucide-react";
 import { ProdutoFAQ } from "@/components/FAQ";
 import { ProductGallery } from "@/components/fotosProduto";
 import { ProdutoCarrossel } from "@/components/carrosselProdutos";
-import type { ProdutoDetalhado, ProdutoResumido, PerguntaFrequente } from "@/types";
+import type { ProdutoDetalhado, ProdutoResumido, PerguntaFrequente, ProdutoListagemApi, ProdutoDetalheApi, ProdutoImagemApi, ItemNavegacao, AvaliacaoApi } from "@/types";
 
-function toNumber(value: any, fallback = 0) {
-    const parsed = typeof value === "number" ? value : Number.parseFloat(value ?? "");
-    return Number.isFinite(parsed) ? parsed : fallback;
+function toNumber(value: unknown, fallback = 0) {
+    if (typeof value === "number") return value;
+    if (typeof value === "string") {
+        const parsed = Number.parseFloat(value.replace(',', '.'));
+        return Number.isFinite(parsed) ? parsed : fallback;
+    }
+    return fallback;
 }
 
-function mapParaResumo(item: any): ProdutoResumido {
+function mapParaResumo(item: ProdutoListagemApi): ProdutoResumido {
     const pOrig = toNumber(item.preco, 0);
     const pProm = toNumber(item.preco_promocional, pOrig);
-    const pAtual = item.desconto_ativo && pProm > 0 ? pProm : pOrig;
-    
+    const pAtual = Boolean(item.desconto_ativo) && pProm > 0 ? pProm : pOrig;
+
     return {
         id: String(item.id),
         nome: item.nome,
         precoAtual: pAtual,
         precoOriginal: pOrig,
         porcentagemDesconto: pOrig > 0 && pAtual < pOrig ? Math.round(((pOrig - pAtual) / pOrig) * 100) : 0,
-        imagem: item.imagem_url || item.imagem || "https://via.placeholder.com/300x300?text=Sem+Imagem",
+        imagem: (item.imagem_url as string) || (item as any).imagem || "https://via.placeholder.com/300x300?text=Sem+Imagem",
         avaliacao: toNumber(item.media_avaliacoes, 5),
         emEstoque: toNumber(item.quantidade) > 0
     };
 }
 
-function mapProduto(data: any): ProdutoDetalhado {
+function mapProduto(data: ProdutoDetalheApi): ProdutoDetalhado {
     const pOrig = toNumber(data.preco, 0);
     const pAtual = Boolean(data.desconto_ativo) && toNumber(data.preco_promocional) > 0 ? toNumber(data.preco_promocional) : pOrig;
 
-    const imagens = (data.imagens ?? []).map((img: any) => img.url).filter(Boolean);
+    const imagens = (data.imagens ?? []).map((img: ProdutoImagemApi) => img.url).filter(Boolean) as string[];
     let textoFinal = "";
-    if (Array.isArray(data.descricao_blocos) && data.descricao_blocos.length > 0) {
-        textoFinal = data.descricao_blocos.map((b: any) => b.conteudo || "").join("\n");
+    if (Array.isArray((data as any).descricao_blocos) && (data as any).descricao_blocos.length > 0) {
+        textoFinal = (data as any).descricao_blocos.map((b: any) => b.conteudo || "").join("\n");
     } else if (typeof data.descricao === "string") {
         textoFinal = data.descricao;
     }
@@ -47,7 +51,7 @@ function mapProduto(data: any): ProdutoDetalhado {
     const descLimpa = textoFinal.trim() || "Descrição não informada pelo vendedor.";
 
     return {
-        id: data.id,
+        id: String(data.id),
         // ROTAS AGORA CLICÁVEIS E APONTANDO PARA A BUSCA
         caminhoNavegacao: [
             { rotulo: data.categoria_nome || "Categoria", url: `/busca?categoria_id=${data.categoria_id || ''}` },
@@ -57,21 +61,25 @@ function mapProduto(data: any): ProdutoDetalhado {
         logoMarca: "",
         nomeProduto: data.nome,
         imagens: imagens.length > 0 ? imagens : ["https://via.placeholder.com/600x600?text=Sem+Imagem"],
-        avisoEstoque: (data.quantidade || 0) <= 5 && (data.quantidade || 0) > 0 ? `Restam apenas ${data.quantidade} un.` : undefined,
+        avisoEstoque: toNumber(data.quantidade) <= 5 && toNumber(data.quantidade) > 0 ? `Restam apenas ${toNumber(data.quantidade)} un.` : undefined,
         avaliacoes: { media: toNumber(data.media_avaliacoes, 5), quantidadeTotal: toNumber(data.total_avaliacoes, 0) },
         topicosSobreProduto: descLimpa !== "Descrição não informada pelo vendedor." ? descLimpa.split(".").map((t: string) => t.trim()).filter((t: string) => t.length > 5) : ["Sem destaques técnicos cadastrados."],
         descricaoCompleta: descLimpa,
         especificacoesTecnicas: {},
-        emEstoque: (data.quantidade || 0) > 0,
+        emEstoque: toNumber(data.quantidade) > 0,
         valores: {
             precoOriginal: pOrig, precoAtual: pAtual, porcentagemDesconto: pOrig > 0 && pAtual < pOrig ? Math.round(((pOrig - pAtual) / pOrig) * 100) : 0,
             descontoPix: 10, quantidadeParcelas: 10, valorParcela: pAtual / 10,
         },
         vendedor: {
-            nome: data.vendedor_nome || "Vendedor Parceiro", lojaOficial: true,
-            textoQuantidadeVendas: "+500 vendas nos últimos 60 dias", politicaDevolucao: "Devolução em 7 dias",
-            garantia: "Garantia do Vendedor", mesesGarantia: 12,
-            fotoPerfil: data.vendedor_foto || null // Puxa a foto do vendedor se existir
+            id: data.vendedor_id,
+            nome: data.vendedor_nome || "Vendedor Parceiro",
+            lojaOficial: true,
+            textoQuantidadeVendas: "+500 vendas nos últimos 60 dias",
+            politicaDevolucao: "Devolução em 7 dias",
+            garantia: "Garantia do Vendedor",
+            mesesGarantia: 12,
+            fotoPerfil: data.vendedor_foto || null
         },
         textoPreviaFrete: "Chegará grátis e rápido",
         urlBannerPromocional: data.vendedor_banner || undefined,
@@ -81,12 +89,12 @@ function mapProduto(data: any): ProdutoDetalhado {
 
 export default function ProductPage() {
     const { id } = useParams<{ id: string }>();
-    const [produto, setProduto] = useState<any>(null);
+    const [produto, setProduto] = useState<ProdutoDetalhado | null>(null);
     const [relacionados, setRelacionados] = useState<ProdutoResumido[]>([]);
     const [aleatorios, setAleatorios] = useState<ProdutoResumido[]>([]);
     
     // Novos Estados
-    const [avaliacoesUsuarios, setAvaliacoesUsuarios] = useState<any[]>([]);
+    const [avaliacoesUsuarios, setAvaliacoesUsuarios] = useState<AvaliacaoApi[]>([]);
     const [perguntasFrequentes, setPerguntasFrequentes] = useState<PerguntaFrequente[]>([]);
     const [novaPergunta, setNovaPergunta] = useState("");
 
@@ -117,16 +125,16 @@ export default function ProductPage() {
 
                 const [dadosAleatorios, dadosRelacionados, dadosAvals, dadosPerguntas] = await Promise.all(promessas);
 
-                if (Array.isArray(dadosAleatorios)) setAleatorios(dadosAleatorios.map(mapParaResumo).filter(p => p.id !== id));
-                if (Array.isArray(dadosRelacionados)) setRelacionados(dadosRelacionados.map(mapParaResumo).filter(p => p.id !== id));
+                if (Array.isArray(dadosAleatorios)) setAleatorios(dadosAleatorios.map((d: ProdutoListagemApi) => mapParaResumo(d)).filter(p => p.id !== id));
+                if (Array.isArray(dadosRelacionados)) setRelacionados(dadosRelacionados.map((d: ProdutoListagemApi) => mapParaResumo(d)).filter(p => p.id !== id));
                 
-                setAvaliacoesUsuarios(dadosAvals.avaliacoes || []);
+                if (dadosAvals && Array.isArray((dadosAvals as any).avaliacoes)) setAvaliacoesUsuarios((dadosAvals as any).avaliacoes as AvaliacaoApi[]);
 
                 // Mapeia perguntas do BD para o formato que o Accordion espera
                 if (Array.isArray(dadosPerguntas)) {
                     const faqsMapeadas = dadosPerguntas
-                        .filter(p => p.resposta) // Mostra no FAQ apenas as que já foram respondidas pelo vendedor
-                        .map(p => ({ pergunta: p.pergunta, resposta: p.resposta }));
+                        .filter((p: any) => p.resposta) // Mostra no FAQ apenas as que já foram respondidas pelo vendedor
+                        .map((p: any) => ({ id: String(p.id || Math.random()), pergunta: p.pergunta, resposta: p.resposta }));
                     setPerguntasFrequentes(faqsMapeadas);
                 }
 
@@ -136,8 +144,8 @@ export default function ProductPage() {
                     fetch(`${api}/historico/registrar/${id}`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } }).catch(()=>{});
                 }
 
-            } catch (err: any) {
-                if (err.name !== 'AbortError') setErro(err.message);
+            } catch (err: unknown) {
+                if ((err as any)?.name !== 'AbortError') setErro(err instanceof Error ? err.message : String(err));
             } finally {
                 setLoading(false);
             }

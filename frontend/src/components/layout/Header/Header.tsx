@@ -1,10 +1,10 @@
 "use client";
-/* eslint-disable @next/next/no-img-element */
+
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Heart, MapPin, Search, ShoppingCart, User, Menu, ChevronDown } from "lucide-react";
+import { Heart, MapPin, Search, ShoppingCart, User, Menu, ChevronDown, Store, LayoutDashboard, LogOut } from "lucide-react";
 import logo from "./logo.png";
 
 type ProdutoSugestao = {
@@ -26,11 +26,14 @@ export default function Header() {
     const inputRef = useRef<HTMLInputElement>(null);
     const debounceRef = useRef<number | null>(null);
     const abortRef = useRef<AbortController | null>(null);
-    
+
     const [sugestoes, setSugestoes] = useState<ProdutoSugestao[]>([]);
     const [mostrarSugestoes, setMostrarSugestoes] = useState(false);
     const [carregandoSugestoes, setCarregandoSugestoes] = useState(false);
-    
+
+    const [usuarioLogado, setUsuarioLogado] = useState<{ id: string, nome: string, role: string } | null>(null);
+    const [menuUsuarioAberto, setMenuUsuarioAberto] = useState(false);
+
     // Estados do Menu de Categorias
     const [categorias, setCategorias] = useState<Categoria[]>([]);
     const [menuCategoriasAberto, setMenuCategoriasAberto] = useState(false);
@@ -41,6 +44,34 @@ export default function Header() {
         }
     }, [termoParam]);
 
+    useEffect(() => {
+        // Verifica se há alguém logado no localStorage ao carregar a página
+        const userStr = localStorage.getItem("usuario");
+        if (userStr) {
+            try {
+                setUsuarioLogado(JSON.parse(userStr));
+            } catch (e) {
+                console.error("Erro ao ler usuário do localStorage");
+            }
+        }
+    }, []);
+
+    const handleLogout = () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("usuario");
+        setUsuarioLogado(null);
+        router.push("/login");
+    };
+
+    const handleAnunciar = () => {
+        if (usuarioLogado?.role === "vendedor") {
+            router.push("/vendedor/produtos/novo");
+        } else {
+            // Se for cliente ou não estiver logado, manda para a landing page de vendedores
+            router.push("/login?tipo=vendedor");
+        }
+    };
+
     // Busca as categorias ao carregar o header
     useEffect(() => {
         async function fetchCategorias() {
@@ -49,8 +80,8 @@ export default function Header() {
                 if (res.ok) {
                     setCategorias(await res.json());
                 }
-            } catch (error) {
-                console.error("Erro ao carregar categorias no header", error);
+            } catch (error: unknown) {
+                console.error("Erro ao carregar categorias no header", error instanceof Error ? error.message : String(error));
             }
         }
         fetchCategorias();
@@ -93,8 +124,8 @@ export default function Header() {
             const data = await response.json();
             setSugestoes(Array.isArray(data) ? data.slice(0, 6) : []);
             setMostrarSugestoes(true);
-        } catch (error: any) {
-            if (error.name !== "AbortError") setSugestoes([]);
+        } catch (error: unknown) {
+            if ((error as any)?.name !== "AbortError") setSugestoes([]);
         } finally {
             setCarregandoSugestoes(false);
         }
@@ -129,121 +160,81 @@ export default function Header() {
 
     return (
         <div className="sticky top-0 z-50 w-full shadow-md">
-            {/* Barra Principal */}
-            <div className="flex h-17.5 w-full items-stretch bg-[#7B1A1A]">
+            <div className="flex h-[70px] w-full items-stretch bg-[#7B1A1A]">
                 <header className="flex flex-1 items-center gap-6 px-6">
-                    <Link href="/" className="flex items-center gap-3 rounded-lg py-2">
-                        <Image src={logo} alt="Greatest Store" width={45} height={45} className="w-auto h-auto object-contain" priority />
-                        <div className="flex flex-col">
-                            <span className="text-xl font-black text-white leading-none">Greatest</span>
-                            <span className="text-[0.65rem] font-bold tracking-[0.2em] text-[#e8c37d] leading-none mt-1">STORE</span>
-                        </div>
-                    </Link>
+                    {/* ... LOGO E BUSCA (MANTENHA COMO ESTÁ) ... */}
 
-                    <div className="hidden md:flex items-center gap-2 whitespace-nowrap text-xs text-white cursor-pointer hover:bg-white/10 p-2 rounded transition">
-                        <MapPin className="h-5 w-5 text-[#e8c37d]" aria-hidden="true" />
-                        <div className="leading-tight">
-                            <div className="text-gray-300">Enviar para</div>
-                            <div className="font-bold text-sm">Insira o CEP</div>
-                        </div>
-                    </div>
-
-                    <form className="relative flex-1 max-w-3xl" onSubmit={handleSearch}>
-                        <div className="flex w-full items-center overflow-hidden rounded-md bg-white shadow-inner">
-                            <input
-                                className="flex-1 bg-transparent px-4 py-2.5 text-sm text-gray-900 outline-none placeholder:text-gray-400"
-                                type="text"
-                                placeholder="Buscar produtos, marcas e muito mais..."
-                                defaultValue={termoParam}
-                                ref={inputRef}
-                                onChange={(e) => agendarSugestoes(e.target.value)}
-                                onFocus={() => sugestoes.length > 0 && setMostrarSugestoes(true)}
-                                onBlur={() => window.setTimeout(() => setMostrarSugestoes(false), 200)}
-                                autoComplete="off"
-                            />
-                            <button className="flex items-center px-4 py-2 text-gray-400 hover:text-[#7B1A1A] transition-colors" type="submit">
-                                <Search className="h-5 w-5" />
-                            </button>
-                        </div>
-
-                        {mostrarSugestoes && (
-                            <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-[200] max-h-80 overflow-y-auto rounded-lg border border-gray-100 bg-white shadow-2xl">
-                                {carregandoSugestoes && <div className="px-4 py-3 text-sm text-gray-500">Buscando...</div>}
-                                {!carregandoSugestoes && sugestoes.length === 0 && <div className="px-4 py-3 text-sm text-gray-500">Nenhum produto encontrado.</div>}
-                                {!carregandoSugestoes && sugestoes.length > 0 && (
-                                    <div className="py-2">
-                                        {sugestoes.map((produto) => (
-                                            <Link key={String(produto.id)} href={`/produtos/${produto.id}`} className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 transition" onClick={() => setMostrarSugestoes(false)}>
-                                                <img src={produto.imagem_url ?? "https://via.placeholder.com/40"} alt={produto.nome} className="h-10 w-10 shrink-0 rounded object-contain bg-white border border-gray-100" />
-                                                <div className="flex flex-col">
-                                                    <span className="text-sm font-semibold text-gray-800 line-clamp-1">{produto.nome}</span>
-                                                    {produto.marca_nome && <span className="text-xs text-gray-500">{produto.marca_nome}</span>}
-                                                </div>
-                                            </Link>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </form>
-
-                    <div className="flex items-center gap-5">
-                        <Link href="/fav" className="flex flex-col items-center justify-center text-white hover:text-[#e8c37d] transition-colors">
-                            <Heart className="h-6 w-6" strokeWidth={1.5} />
-                        </Link>
-                        <Link href="/login" className="flex items-center gap-2 text-white hover:text-[#e8c37d] transition-colors">
-                            <User className="h-6 w-6" strokeWidth={1.5} />
-                            <div className="hidden lg:flex flex-col leading-none">
-                                <span className="text-[0.65rem] text-gray-300">Bem-vindo</span>
-                                <span className="text-sm font-bold">Entre ou Cadastre-se</span>
-                            </div>
-                        </Link>
-                    </div>
-                </header>
-                
-                <Link href="/cart" className="flex flex-col items-center justify-center bg-[#5e1313] hover:bg-[#4a0f0f] transition-colors px-6 text-white min-w-[100px]">
-                    <ShoppingCart className="h-6 w-6 mb-1" />
-                    <span className="text-xs font-bold">Carrinho</span>
-                </Link>
-            </div>
-
-            {/* Barra Secundária (Categorias) */}
-            <div className="bg-[#6b0e0e] px-6 py-1.5 flex items-center relative">
-                <div 
-                    className="relative"
-                    onMouseEnter={() => setMenuCategoriasAberto(true)}
-                    onMouseLeave={() => setMenuCategoriasAberto(false)}
-                >
-                    <button className="flex items-center gap-2 rounded px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-white/10">
-                        <Menu size={18} />
-                        Todos Departamentos
-                        <ChevronDown size={14} className={`transition-transform ${menuCategoriasAberto ? 'rotate-180' : ''}`} />
+                    {/* BOTÃO ANUNCIAR DINÂMICO */}
+                    <button
+                        onClick={handleAnunciar}
+                        className="rounded-full bg-[#e8940a] px-5 py-2 text-sm font-bold text-white transition hover:bg-[#d4840a] hidden md:block shrink-0 shadow-sm"
+                    >
+                        {usuarioLogado?.role === "vendedor" ? "Criar Anúncio" : "Venda na Greatest"}
                     </button>
 
-                    {/* Dropdown de Categorias */}
-                    {menuCategoriasAberto && (
-                        <div className="absolute top-full left-0 w-64 bg-white shadow-2xl rounded-b-lg overflow-hidden z-50 border-t-2 border-[#7B1A1A]">
-                            {categorias.length === 0 ? (
-                                <div className="p-4 text-sm text-gray-500">Carregando...</div>
-                            ) : (
-                                <ul className="py-2">
-                                    {categorias.map(cat => (
-                                        <li key={cat.id}>
-                                            <Link 
-                                                href={`/busca?categoria_id=${cat.id}`} 
-                                                className="block px-5 py-2.5 text-sm text-gray-700 hover:bg-red-50 hover:text-[#7B1A1A] font-medium transition-colors"
-                                                onClick={() => setMenuCategoriasAberto(false)}
-                                            >
-                                                {cat.nome}
-                                            </Link>
-                                        </li>
-                                    ))}
-                                </ul>
+                    <div className="flex items-center gap-5 shrink-0">
+                        <Link href="/fav" className="flex flex-col items-center justify-center text-white hover:text-[#e8c37d] transition-colors relative">
+                            <Heart className="h-6 w-6" strokeWidth={1.5} />
+                        </Link>
+
+                        {/* MENU DE USUÁRIO DINÂMICO */}
+                        <div
+                            className="relative flex items-center gap-2 text-white hover:text-[#e8c37d] transition-colors cursor-pointer"
+                            onMouseEnter={() => setMenuUsuarioAberto(true)}
+                            onMouseLeave={() => setMenuUsuarioAberto(false)}
+                        >
+                            <User className="h-6 w-6" strokeWidth={1.5} />
+                            <div className="hidden lg:flex flex-col leading-none">
+                                {usuarioLogado ? (
+                                    <>
+                                        <span className="text-[0.65rem] text-gray-300">Olá, {usuarioLogado.nome.split(" ")[0]}</span>
+                                        <span className="text-sm font-bold flex items-center gap-1">Minha Conta <ChevronDown size={12} /></span>
+                                    </>
+                                ) : (
+                                    <Link href="/login">
+                                        <span className="text-[0.65rem] text-gray-300">Bem-vindo</span>
+                                        <span className="text-sm font-bold block mt-0.5">Entre ou Cadastre-se</span>
+                                    </Link>
+                                )}
+                            </div>
+
+                            {/* DROPDOWN DO USUÁRIO LOGADO */}
+                            {usuarioLogado && menuUsuarioAberto && (
+                                <div className="absolute top-full right-0 mt-0 w-56 bg-white shadow-xl rounded-lg overflow-hidden z-50 border border-slate-100 text-slate-800">
+                                    <div className="p-4 border-b border-slate-100 bg-slate-50">
+                                        <p className="font-bold text-sm truncate">{usuarioLogado.nome}</p>
+                                        <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mt-1">Conta {usuarioLogado.role}</p>
+                                    </div>
+                                    <div className="py-2">
+                                        {/* Links exclusivos para Vendedor */}
+                                        {usuarioLogado.role === "vendedor" && (
+                                            <>
+                                                <Link href="/vendedor/dashboard" className="flex items-center gap-3 px-4 py-2 text-sm font-medium hover:bg-red-50 hover:text-red-600 transition-colors">
+                                                    <LayoutDashboard size={16} /> Painel de Vendas
+                                                </Link>
+                                                <Link href="/vendedor/perfil" className="flex items-center gap-3 px-4 py-2 text-sm font-medium hover:bg-red-50 hover:text-red-600 transition-colors">
+                                                    <Store size={16} /> Perfil da Loja
+                                                </Link>
+                                                <div className="h-px bg-slate-100 my-2"></div>
+                                            </>
+                                        )}
+                                        {/* Links comuns */}
+                                        <Link href="/pedidos" className="flex items-center gap-3 px-4 py-2 text-sm font-medium hover:bg-slate-50 transition-colors">
+                                            Meus Pedidos
+                                        </Link>
+                                        <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors text-left">
+                                            <LogOut size={16} /> Sair da conta
+                                        </button>
+                                    </div>
+                                </div>
                             )}
                         </div>
-                    )}
-                </div>
+                    </div>
+                </header>
+
+                {/* ... CARRINHO ... */}
             </div>
+            {/* ... BARRA SECUNDÁRIA (CATEGORIAS) ... */}
         </div>
     );
 }

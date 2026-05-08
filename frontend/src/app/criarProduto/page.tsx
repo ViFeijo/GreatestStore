@@ -56,10 +56,12 @@ export default function CriarProdutoPage() {
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const { name, value, type } = e.target as any;
+        const target = e.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+        const { name, value, type } = target;
+        const newValue = type === "checkbox" ? (target as HTMLInputElement).checked : value;
         setFormData(prev => ({
             ...prev,
-            [name]: type === "checkbox" ? (e.target as HTMLInputElement).checked : value
+            [name]: newValue
         }));
     };
 
@@ -183,12 +185,13 @@ export default function CriarProdutoPage() {
                         {/* Título Principal */}
                         <div>
                             <input 
-                                required
-                                name="nome"
-                                placeholder="Nome do Produto (Ex: Smartphone Samsung Galaxy S23)"
-                                className="w-full text-2xl font-black text-gray-900 placeholder:text-gray-300 border-0 border-b-2 border-gray-100 focus:border-red-600 focus:ring-0 px-0 py-2 transition-colors outline-none bg-transparent"
-                                onChange={handleInputChange}
-                            />
+                                    required
+                                    name="nome"
+                                    value={formData.nome}
+                                    placeholder="Nome do Produto (Ex: Smartphone Samsung Galaxy S23)"
+                                    className="w-full text-2xl font-black text-gray-900 placeholder:text-gray-300 border-0 border-b-2 border-gray-100 focus:border-red-600 focus:ring-0 px-0 py-2 transition-colors outline-none bg-transparent"
+                                    onChange={handleInputChange}
+                                />
                         </div>
                         
                         <div className="grid grid-cols-2 gap-6">
@@ -196,13 +199,13 @@ export default function CriarProdutoPage() {
                                 <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
                                     <Tag size={14} className="text-gray-400" /> Marca
                                 </label>
-                                <input name="marca_nome" placeholder="Ex: Samsung" className="w-full bg-gray-50 border border-gray-200 focus:bg-white focus:border-red-500 focus:ring-2 focus:ring-red-100 p-3 rounded-xl text-sm font-semibold text-gray-900 transition-all outline-none" onChange={handleInputChange} />
+                                <input name="marca_nome" value={formData.marca_nome} placeholder="Ex: Samsung" className="w-full bg-gray-50 border border-gray-200 focus:bg-white focus:border-red-500 focus:ring-2 focus:ring-red-100 p-3 rounded-xl text-sm font-semibold text-gray-900 transition-all outline-none" onChange={handleInputChange} />
                             </div>
                             <div className="space-y-2">
                                 <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
                                     <Info size={14} className="text-gray-400" /> Modelo
                                 </label>
-                                <input name="modelo" placeholder="Ex: SM-S911B" className="w-full bg-gray-50 border border-gray-200 focus:bg-white focus:border-red-500 focus:ring-2 focus:ring-red-100 p-3 rounded-xl text-sm font-semibold text-gray-900 transition-all outline-none" onChange={handleInputChange} />
+                                <input name="modelo" value={formData.modelo} placeholder="Ex: SM-S911B" className="w-full bg-gray-50 border border-gray-200 focus:bg-white focus:border-red-500 focus:ring-2 focus:ring-red-100 p-3 rounded-xl text-sm font-semibold text-gray-900 transition-all outline-none" onChange={handleInputChange} />
                             </div>
                         </div>
 
@@ -219,17 +222,17 @@ export default function CriarProdutoPage() {
                                     <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Preço Original</label>
                                     <div className="relative">
                                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">R$</span>
-                                        <input required type="number" step="0.01" name="preco" className="w-full bg-gray-50 border border-gray-200 focus:bg-white focus:border-red-500 focus:ring-2 focus:ring-red-100 p-3 pl-10 rounded-xl font-black text-gray-900 outline-none transition-all" placeholder="0.00" onChange={handleInputChange} />
+                                        <input required type="number" step="0.01" name="preco" value={formData.preco} className="w-full bg-gray-50 border border-gray-200 focus:bg-white focus:border-red-500 focus:ring-2 focus:ring-red-100 p-3 pl-10 rounded-xl font-black text-gray-900 outline-none transition-all" placeholder="0.00" onChange={handleInputChange} />
                                     </div>
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Estoque Atual</label>
-                                    <input required type="number" name="quantidade" className="w-full bg-gray-50 border border-gray-200 focus:bg-white focus:border-red-500 focus:ring-2 focus:ring-red-100 p-3 rounded-xl font-black text-gray-900 outline-none transition-all" placeholder="1" onChange={handleInputChange} />
+                                    <input required type="number" name="quantidade" value={formData.quantidade} className="w-full bg-gray-50 border border-gray-200 focus:bg-white focus:border-red-500 focus:ring-2 focus:ring-red-100 p-3 rounded-xl font-black text-gray-900 outline-none transition-all" placeholder="1" onChange={handleInputChange} />
                                 </div>
                             </div>
 
                             <div className="flex items-center gap-3 p-4 bg-gray-50 border border-gray-200 rounded-xl">
-                                <input type="checkbox" name="desconto_ativo" id="desc" className="w-5 h-5 rounded border-gray-300 text-red-600 focus:ring-red-500 cursor-pointer" onChange={handleInputChange} />
+                                <input type="checkbox" name="desconto_ativo" id="desc" checked={formData.desconto_ativo} className="w-5 h-5 rounded border-gray-300 text-red-600 focus:ring-red-500 cursor-pointer" onChange={handleInputChange} />
                                 <label htmlFor="desc" className="text-sm font-bold text-gray-700 cursor-pointer select-none">Habilitar Preço Promocional</label>
                             </div>
 
@@ -238,7 +241,7 @@ export default function CriarProdutoPage() {
                                     <label className="text-[11px] font-bold text-red-600 uppercase tracking-wider">Novo Preço (Com Desconto)</label>
                                     <div className="relative">
                                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-red-400 font-bold">R$</span>
-                                        <input type="number" step="0.01" name="preco_promocional" className="w-full border-2 border-red-200 bg-red-50/30 focus:bg-white focus:border-red-500 focus:ring-4 focus:ring-red-100 p-4 pl-10 rounded-xl font-black text-xl text-red-700 outline-none transition-all placeholder:text-red-300" placeholder="0.00" onChange={handleInputChange} />
+                                        <input type="number" step="0.01" name="preco_promocional" value={formData.preco_promocional} className="w-full border-2 border-red-200 bg-red-50/30 focus:bg-white focus:border-red-500 focus:ring-4 focus:ring-red-100 p-4 pl-10 rounded-xl font-black text-xl text-red-700 outline-none transition-all placeholder:text-red-300" placeholder="0.00" onChange={handleInputChange} />
                                     </div>
                                 </div>
                             )}
@@ -313,6 +316,7 @@ export default function CriarProdutoPage() {
                             <textarea 
                                 required
                                 name="descricao"
+                                value={formData.descricao}
                                 rows={8}
                                 placeholder="Descreva o produto com clareza. Dica: Separe características técnicas com pontos finais (.). Cada frase virará um tópico organizado na página do produto."
                                 className="w-full p-5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-red-500 focus:ring-2 focus:ring-red-100 outline-none text-gray-700 text-sm leading-relaxed transition-all resize-y"

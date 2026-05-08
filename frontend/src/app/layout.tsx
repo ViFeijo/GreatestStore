@@ -20,9 +20,9 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={cn("h-full bg-(--fundo)) overflow-hidden", "antialiased", openSans.variable)}
+      className={cn("h-full bg-(--fundo)] overflow-hidden", "antialiased", openSans.variable)}
     >
-      <body className="min-h-full flex flex-col font-sans bg-(--fundo) overflow-hidden">
+      <body className="min-h-full flex flex-col font-sans bg-(--fundo)] overflow-hidden">
         <Header />
         <div className="flex-1 overflow-auto">
           {children}

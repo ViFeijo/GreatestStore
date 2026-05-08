@@ -48,30 +48,30 @@ export default function DashboardVendedor() {
                 });
 
                 if (!resProdutos.ok) throw new Error("Falha ao carregar catálogo");
-                const dadosProdutos = await resProdutos.json();
+                const dadosProdutos = await resProdutos.json() as ProdutoVendido[];
 
                 // Mock das estatísticas baseadas na vista_vendas_diarias 
                 // (Caso não tenha a rota da view pronta no back, isso evita que a tela quebre)
                 let faturamento = 0;
                 let vendas = 0;
 
-                const produtosFormatados = dadosProdutos.map((p: any) => {
+                const produtosFormatados = dadosProdutos.map((p: ProdutoVendido) => {
                     // Simulando os dados da vista_vendas_produtos (total_unidades_vendidas)
-                    const vendidas = p.total_unidades_vendidas || Math.floor(Math.random() * 50);
-                    const fatProduto = vendidas * parseFloat(p.preco);
+                    const vendidas = (p as any).total_unidades_vendidas || Math.floor(Math.random() * 50);
+                    const fatProduto = vendidas * Number(p.preco);
 
                     faturamento += fatProduto;
                     vendas += vendidas;
 
                     return {
-                        produto_id: p.id,
+                        produto_id: String(p.id),
                         produto_nome: p.nome,
                         modelo: p.modelo || "N/A",
                         marca_nome: p.marca_nome || "Sem Marca",
                         total_unidades_vendidas: vendidas,
                         faturamento_total_produto: fatProduto,
-                        quantidade_estoque: p.quantidade,
-                        preco: parseFloat(p.preco),
+                        quantidade_estoque: (p as any).quantidade,
+                        preco: Number(p.preco),
                         imagem_url: p.imagem_url || "https://via.placeholder.com/150"
                     };
                 });
@@ -79,8 +79,8 @@ export default function DashboardVendedor() {
                 setProdutos(produtosFormatados);
                 setEstatisticas({ faturamentoTotal: faturamento, totalVendas: vendas });
 
-            } catch (err: any) {
-                if (err.name !== 'AbortError') setErro(err.message);
+            } catch (err: unknown) {
+                if ((err as any)?.name !== 'AbortError') setErro(err instanceof Error ? err.message : String(err));
             } finally {
                 setLoading(false);
             }
@@ -217,7 +217,7 @@ export default function DashboardVendedor() {
 }
 
 // Componente auxiliar para os Cards
-function StatCard({ title, value, icon, color }: { title: string, value: string, icon: any, color: string }) {
+function StatCard({ title, value, icon, color }: { title: string, value: string, icon: React.ReactNode, color: string }) {
     return (
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-5 relative overflow-hidden">
             <div className={`p-4 rounded-xl text-white ${color} z-10 shadow-lg`}>
