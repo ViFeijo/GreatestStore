@@ -7,6 +7,7 @@ export default function PerfilPage() {
 	const router = useRouter();
 	const [nome, setNome] = useState("");
 
+
 	useEffect(() => {
 		// placeholder: you can load user profile here
 	}, []);

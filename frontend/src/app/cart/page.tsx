@@ -16,7 +16,9 @@ export default function CartPage() {
   const [items, setItems] = useState<CartItem[]>([]);
 
   useEffect(() => {
-    setItems(getCartItems());
+    queueMicrotask(() => {
+      setItems(getCartItems());
+    });
   }, []);
 
   function updateItems(nextItems: CartItem[]) {

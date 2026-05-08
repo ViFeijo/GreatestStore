@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Info, BookOpen, Save, Plus, Trash2, Image as ImageIcon, Package, Tag, DollarSign, Layers } from "lucide-react";
-import type { ApiErrorResponse, CategoriaApi, SubcategoriaApi } from "@/types";
+import type { CategoriaApi, SubcategoriaApi } from "@/types";
 
 export default function CriarProdutoPage() {
     const router = useRouter();

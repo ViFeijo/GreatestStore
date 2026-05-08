@@ -122,7 +122,6 @@ export default function ProductPage() {
 
     const [loading, setLoading] = useState(true);
     const [erro, setErro] = useState<string | null>(null);
-    const [adicionando, setAdicionando] = useState(false);
 
     useEffect(() => {
         if (!id) return;
@@ -422,3 +421,7 @@ export default function ProductPage() {
 function isAvaliacoesResponse(value: unknown): value is AvaliacoesResponse {
     return typeof value === "object" && value !== null && "avaliacoes" in value;
 }
+function setAdicionando(arg0: boolean) {
+    throw new Error("Function not implemented.");
+}
+

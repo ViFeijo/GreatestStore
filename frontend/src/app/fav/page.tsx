@@ -21,7 +21,7 @@ type FavItem = {
   image?: string;
 };
 
-export default function favPage() {
+export default function FavPage() {
   const [items, setItems] = useState<FavItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
@@ -40,7 +40,7 @@ export default function favPage() {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/favoritos`, { headers: { Authorization: `Bearer ${token}` } });
         if (!res.ok) throw new Error('Erro ao carregar favoritos');
         const data = await res.json();
-        const mapped: FavItem[] = (data || []).map((p: any) => ({
+        const mapped: FavItem[] = (data || []).map((p: { id: string | number; nome: string; marca_nome?: string | null; vendedor_nome?: string | null; preco_final?: number; preco?: number; imagem_url?: string | null }) => ({
           id: String(p.id),
           name: p.nome,
           seller: p.marca_nome || p.vendedor_nome || '',
@@ -48,8 +48,8 @@ export default function favPage() {
           image: p.imagem_url || 'https://via.placeholder.com/300x300?text=Sem+Imagem',
         }));
         setItems(mapped);
-      } catch (err: any) {
-        setErro(err?.message || 'Erro ao carregar favoritos');
+      } catch (err) {
+        setErro(err instanceof Error ? err.message : 'Erro ao carregar favoritos');
       } finally {
         setLoading(false);
       }
@@ -68,7 +68,7 @@ export default function favPage() {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/favoritos/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
       if (!res.ok) throw new Error('Erro ao remover favorito');
       setItems((prev) => prev.filter((i) => i.id !== id));
-    } catch (err) {
+    } catch {
       alert('Erro ao remover favorito');
     }
   }

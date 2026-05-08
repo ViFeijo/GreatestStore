@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Plus, Minus, Truck, ShieldCheck, X } from "lucide-react";
 import { Button } from "../ui/button";
@@ -33,7 +33,7 @@ export function CompraBox({
     const [favoritado, setFavoritado] = useState<boolean>(false);
     const [favLoading, setFavLoading] = useState(false);
 
-    async function carregarFavorito() {
+    const carregarFavorito = useCallback(async () => {
         const resolvedId = produtoId ?? (typeof window !== 'undefined' ? String(window.location.pathname.split('/').filter(Boolean).pop()) : null);
         if (!resolvedId) return;
         const token = typeof window !== "undefined" ? window.localStorage.getItem("token") : null;
@@ -46,7 +46,7 @@ export function CompraBox({
         } catch {
             // ignore
         }
-    }
+    }, [produtoId]);
 
     async function toggleFavorito() {
         // resolve produto id from prop or URL path fallback
@@ -66,7 +66,7 @@ export function CompraBox({
                 if (!res.ok) throw new Error();
                 setFavoritado(false);
             }
-        } catch (err) {
+        } catch {
             alert("Erro ao atualizar favorito.");
         } finally {
             setFavLoading(false);
@@ -81,7 +81,11 @@ export function CompraBox({
     }
 
     // carrega estado do favorito ao montar
-    useEffect(() => { carregarFavorito(); }, [produtoId]);
+    useEffect(() => { 
+        queueMicrotask(() => {
+            carregarFavorito();
+        });
+    }, [produtoId, carregarFavorito]);
 
     return (
         <div className="bg-white rounded-lg p-6 space-y-6 shadow-sm border border-gray-200">

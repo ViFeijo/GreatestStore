@@ -48,24 +48,25 @@ export default function Header() {
     }, []);
 
     useEffect(() => {
-        if (typeof window === "undefined" || !isMountedRef.current) return;
+        queueMicrotask(() => {
+            if (typeof window === "undefined" || !isMountedRef.current) return;
 
-        try {
-            const userStr = window.localStorage.getItem("usuario");
-            if (!userStr) return;
+            try {
+                const userStr = window.localStorage.getItem("usuario");
+                if (!userStr) return;
 
-            const parsed = JSON.parse(userStr) as { id?: string | number; nome?: string; role?: string };
-            if (isMountedRef.current) {
-                // eslint-disable-next-line react-hooks/exhaustive-deps
-                setUsuarioLogado({
-                    id: parsed.id ?? "",
-                    nome: parsed.nome ?? "",
-                    role: parsed.role ?? "cliente",
-                });
+                const parsed = JSON.parse(userStr) as { id?: string | number; nome?: string; role?: string };
+                if (isMountedRef.current) {
+                    setUsuarioLogado({
+                        id: parsed.id ?? "",
+                        nome: parsed.nome ?? "",
+                        role: parsed.role ?? "cliente",
+                    });
+                }
+            } catch {
+                // ignore
             }
-        } catch {
-            // ignore
-        }
+        });
     }, []);
     const [menuUsuarioAberto, setMenuUsuarioAberto] = useState(false);
 
