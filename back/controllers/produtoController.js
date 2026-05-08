@@ -46,9 +46,14 @@ async function buscarPorId(req, res) {
     if (!produto) return res.status(404).json({ error: 'Produto não encontrado' });
 
     const imagens = await Produto.buscarImagensPorId(req.params.id);
-    const descricao = await Produto.buscarBlocosPorId(req.params.id);
-    
-    return res.json({ ...produto, imagens, descricao });
+    // Mudamos o nome aqui para 'blocos' para não sobrescrever o campo 'descricao' do produto
+    const blocos = await Produto.buscarBlocosPorId(req.params.id);
+
+    return res.json({
+      ...produto,
+      imagens,
+      descricao_blocos: blocos // Agora enviamos os dois de forma separada
+    });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
@@ -238,7 +243,7 @@ async function deletar(req, res) {
   }
 }
 
-module.exports = { 
+module.exports = {
   criar, listartodos, buscarPorId, buscarPorModelo, buscar, meusProdutos,
   carrossel, carrosselCategoria, carrosselOferta, carrosselRandom,
   carrosselFavoritos, carrosselEvento, buscarPorSubcategoria, buscarComFiltros, atualizar, deletar

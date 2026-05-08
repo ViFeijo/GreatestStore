@@ -34,10 +34,13 @@ async function listartodos() {
 async function buscarPorId(id) {
   const result = await pool.query(
     `SELECT p.*,
+        v.id AS vendedor_id,
         v.nome_fantasia AS vendedor_nome,
         v.foto_perfil_url AS vendedor_foto,
         v.banner_url AS vendedor_banner,
+        s.id AS subcategoria_id,
         s.nome AS subcategoria_nome,
+        c.id AS categoria_id,
         c.nome AS categoria_nome,
         m.nome AS marca_nome,
         ROUND(AVG(a.nota), 1) AS media_avaliacoes,
