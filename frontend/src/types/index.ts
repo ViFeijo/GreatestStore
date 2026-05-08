@@ -74,3 +74,296 @@ export interface ProdutoDetalhado {
     produtosRelacionados: ProdutoResumido[];
     vistosRecentemente: ProdutoResumido[];
 }
+
+// 4. Tipagens da API (backend)
+
+export type RoleUsuario = "cliente" | "vendedor" | "admin" | string;
+
+export interface ApiErrorResponse {
+    error: string;
+}
+
+export interface UsuarioApi {
+    id: string | number;
+    nome: string | null;
+    email: string;
+    cpf: string | null;
+    role: RoleUsuario;
+    criado_em?: string;
+    senha?: string;
+}
+
+export interface UsuarioPublicoApi {
+    id: string | number;
+    nome: string | null;
+    email: string;
+    cpf?: string | null;
+    role: RoleUsuario;
+    criado_em?: string;
+}
+
+export interface AuthLoginResponse {
+    token: string;
+    usuario: {
+        id: string | number;
+        nome: string | null;
+        email: string;
+        role: RoleUsuario;
+    };
+}
+
+export interface AuthRegistroVendedorResponse {
+    usuario: UsuarioPublicoApi;
+    vendedor: VendedorApi;
+}
+
+export interface EnderecoUsuarioApi {
+    id?: string | number;
+    usuario_id: string | number;
+    apelido: string | null;
+    cep: string;
+    rua: string;
+    numero: string;
+    complemento?: string | null;
+    bairro: string;
+    cidade: string;
+    estado: string;
+    is_principal?: boolean;
+    criado_em?: string;
+}
+
+export interface EnderecoVendedorApi {
+    id?: string | number;
+    vendedor_id: string | number;
+    cep: string;
+    rua: string;
+    numero: string;
+    complemento?: string | null;
+    bairro: string;
+    cidade: string;
+    estado: string;
+    criado_em?: string;
+}
+
+export interface VendedorApi {
+    id: string | number;
+    usuario_id: string | number;
+    cnpj: string;
+    nome_fantasia: string | null;
+    razao_social: string | null;
+    foto_perfil_url?: string | null;
+    banner_url?: string | null;
+    criado_em?: string;
+    nome?: string | null;
+    email?: string | null;
+    cpf?: string | null;
+    endereco?: EnderecoVendedorApi | null;
+}
+
+export interface CategoriaApi {
+    id: string | number;
+    nome: string;
+}
+
+export interface SubcategoriaApi {
+    id: string | number;
+    categoria_id: string | number;
+    nome: string;
+    categoria_nome?: string;
+}
+
+export interface MarcaApi {
+    id: string | number;
+    nome: string;
+    logo_url?: string | null;
+}
+
+export interface MarcaImagemApi {
+    id?: string | number;
+    marca_id: string | number;
+    url: string;
+    nome?: string | null;
+    ordem?: number | null;
+}
+
+export interface EventoApi {
+    id: string | number;
+    nome: string;
+    descricao?: string | null;
+    banner_url?: string | null;
+    data_inicio: string;
+    data_fim: string;
+    ativo?: boolean;
+}
+
+export interface ProdutoImagemApi {
+    id?: string | number;
+    produto_id: string | number;
+    url: string;
+    ordem?: number | null;
+    is_principal?: boolean | null;
+}
+
+export interface ProdutoBaseApi {
+    id: string | number;
+    vendedor_id?: string | number;
+    subcategoria_id?: string | number | null;
+    marca_id?: string | number | null;
+    nome: string;
+    modelo?: string | null;
+    descricao?: string | null;
+    preco: number | string;
+    quantidade?: number | string | null;
+    preco_promocional?: number | string | null;
+    desconto_ativo?: boolean | null;
+    criado_em?: string;
+}
+
+export interface ProdutoListagemApi extends ProdutoBaseApi {
+    preco_final?: number | string | null;
+    marca_nome?: string | null;
+    vendedor_nome?: string | null;
+    subcategoria_nome?: string | null;
+    categoria_nome?: string | null;
+    imagem_url?: string | null;
+    media_avaliacoes?: number | string | null;
+    total_avaliacoes?: number | string | null;
+    total_resultados?: number | string | null;
+    score?: number | string | null;
+    evento_banner?: string | null;
+    imagem_nome?: string | null;
+}
+
+export interface ProdutoDetalheApi extends ProdutoBaseApi {
+    vendedor_nome?: string | null;
+    vendedor_foto?: string | null;
+    vendedor_banner?: string | null;
+    subcategoria_nome?: string | null;
+    categoria_nome?: string | null;
+    marca_nome?: string | null;
+    media_avaliacoes?: number | string | null;
+    total_avaliacoes?: number | string | null;
+    imagens?: ProdutoImagemApi[];
+}
+
+export interface BuscaProdutosResponse {
+    total: number;
+    produtos: ProdutoListagemApi[];
+}
+
+export interface AvaliacaoApi {
+    id?: string | number;
+    produto_id: string | number;
+    usuario_id: string | number;
+    nota: number | string;
+    comentario?: string | null;
+    criado_em?: string;
+    usuario_nome?: string | null;
+}
+
+export interface AvaliacaoMediaApi {
+    total_avaliacoes: number | string;
+    media: number | string;
+}
+
+export interface AvaliacaoListagemResponse {
+    media: AvaliacaoMediaApi;
+    avaliacoes: AvaliacaoApi[];
+}
+
+export interface FavoritoApi {
+    id?: string | number;
+    usuario_id: string | number;
+    produto_id: string | number;
+    criado_em?: string;
+}
+
+export interface FavoritoStatusResponse {
+    favoritado: boolean;
+}
+
+export interface CarrinhoItemApi {
+    id: string | number;
+    quantidade: number | string;
+    produto_id: string | number;
+    nome: string;
+    preco: number | string;
+    preco_promocional?: number | string | null;
+    desconto_ativo?: boolean | null;
+    estoque?: number | string | null;
+    imagem_url?: string | null;
+    marca_nome?: string | null;
+    vendedor_id?: string | number | null;
+    cep_vendedor?: string | null;
+    preco_final?: number | string | null;
+    subtotal_item?: number | string | null;
+}
+
+export interface CarrinhoResumoResponse {
+    itens: CarrinhoItemApi[];
+    subtotal: string;
+    frete: string;
+    total: string;
+}
+
+export interface PedidoItemApi {
+    produto_id: string | number;
+    quantidade: number | string;
+    preco_unitario: number | string;
+}
+
+export interface PedidoApi {
+    id: string | number;
+    usuario_id: string | number;
+    endereco_id: string | number;
+    valor_total: number | string;
+    cupom_id?: string | number | null;
+    status?: string | null;
+    criado_em?: string;
+}
+
+export interface PedidoComItensApi extends PedidoApi {
+    itens: PedidoItemApi[];
+}
+
+export interface PedidoCriadoResponse {
+    pedido: PedidoApi;
+    pagamento_id: string | number;
+    subtotal: string;
+    frete: string;
+    total: string;
+    metodo_pagamento: string;
+}
+
+export interface PagamentoApi {
+    id: string | number;
+    pedido_id: string | number;
+    metodo: string;
+    valor: number | string;
+    status?: string | null;
+    codigo_transacao?: string | null;
+    criado_em?: string;
+    pago_em?: string | null;
+}
+
+export interface PagamentoComPedidoApi extends PagamentoApi {
+    pedido_criado_em?: string;
+    valor_total?: number | string;
+}
+
+export interface NotificacaoApi {
+    id: string | number;
+    usuario_id: string | number;
+    titulo: string;
+    mensagem: string;
+    lida?: boolean;
+    criado_em?: string;
+}
+
+export interface NotificacaoNaoLidasResponse {
+    total: number;
+}
+
+export interface UploadResponse {
+    url: string;
+}

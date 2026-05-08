@@ -1,9 +1,28 @@
 "use client";
-import styles from './Header.module.css';
+import { useEffect, useState } from "react";
+import styles from "./Header.module.css";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter, useSearchParams } from "next/navigation";
 import logo from "./logo.png";
 export default function Header() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const termoParam = searchParams.get("termo") ?? "";
+    const [searchTerm, setSearchTerm] = useState(termoParam);
+
+    useEffect(() => {
+        setSearchTerm(termoParam);
+    }, [termoParam]);
+
+    const handleSearch = (event?: React.FormEvent<HTMLFormElement>) => {
+        event?.preventDefault();
+        const termo = searchTerm.trim();
+        const destino = termo ? `/busca?termo=${encodeURIComponent(termo)}` : "/busca";
+
+        router.push(destino);
+    };
+
     return (
         <div className={styles.layout}>
             <div className={styles.topBar}>
@@ -29,14 +48,16 @@ export default function Header() {
                         </div>
                     </div>
 
-                    <div className={styles.searchBar}>
+                    <form className={styles.searchBar} onSubmit={handleSearch} role="search" aria-label="Buscar produtos e marcas">
                         <input
                             className={styles.searchInput}
                             type="text"
                             placeholder="Buscar produtos, marcas e muito mais..."
+                            value={searchTerm}
+                            onChange={(event) => setSearchTerm(event.target.value)}
                         />
-                        <button className={styles.searchButton}>🔍</button>
-                    </div>
+                        <button className={styles.searchButton} type="submit" aria-label="Buscar">🔍</button>
+                    </form>
                     <button className={styles.anunciarButton}>Anunciar</button>
 
                     <div className={styles.actions}>
