@@ -7,8 +7,13 @@ import { SideBarDir } from "@/components/SideBarDir";
 import { BookOpen, Star, MessageCircle, User } from "lucide-react";
 import { ProdutoFAQ } from "@/components/FAQ";
 import { ProductGallery } from "@/components/fotosProduto";
+<<<<<<< Updated upstream
 import { ProdutoCarrossel } from "@/components/carrosselProdutos";
 import type { ProdutoDetalhado, ProdutoResumido, PerguntaFrequente, ProdutoListagemApi, ProdutoDetalheApi, ProdutoImagemApi, ItemNavegacao, AvaliacaoApi } from "@/types";
+=======
+import type { ProdutoDetalhado } from "@/types";
+import { addCartItem } from "@/lib/cart";
+>>>>>>> Stashed changes
 
 type ProdutoListagemApiComImagem = ProdutoListagemApi & {
     imagem?: string | null;
@@ -122,6 +127,62 @@ export default function ProductPage() {
     const [loading, setLoading] = useState(true);
     const [erro, setErro] = useState<string | null>(null);
 
+<<<<<<< Updated upstream
+=======
+    function handleAddToCart(quantidade: number) {
+        if (!produto) return;
+
+        addCartItem({
+            id: produto.id,
+            name: produto.nomeProduto,
+            seller: produto.vendedor.nome,
+            price: produto.valores.precoAtual,
+            image: produto.imagens[0] ?? "https://via.placeholder.com/600x600?text=Produto",
+            quantity: quantidade,
+        });
+    }
+
+    // useEffect(() => {
+    //     const controller = new AbortController();
+
+    //     async function carregarProduto() {
+    //         const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL;
+
+    //         if (!apiBaseUrl) {
+    //             setErro("API nao configurada. Tente novamente mais tarde.");
+    //             setLoading(false);
+    //             return;
+    //         }
+
+    //         try {
+    //             const response = await fetch(`${apiBaseUrl}/produtos/${id}`, {
+    //                 signal: controller.signal,
+    //             });
+
+    //             if (!response.ok) {
+    //                 throw new Error("Nao foi possivel carregar o produto.");
+    //             }
+
+    //             const data = (await response.json()) as BackendProduto;
+    //             setProduto(mapProduto(data));
+    //         } catch (error) {
+    //             if (!controller.signal.aborted) {
+    //                 setErro("Falha ao buscar o produto. Tente novamente.");
+    //             }
+    //         } finally {
+    //             if (!controller.signal.aborted) {
+    //                 setLoading(false);
+    //             }
+    //         }
+    //     }
+
+    //     carregarProduto();
+
+    //     return () => {
+    //         controller.abort();
+    //     };
+    // }, [id]);
+>>>>>>> Stashed changes
     useEffect(() => {
         if (!id) return;
         const controller = new AbortController();
@@ -306,6 +367,7 @@ export default function ProductPage() {
                             )}
                         </div>
 
+<<<<<<< Updated upstream
                         {/* PERGUNTAS E RESPOSTAS (Usando o Accordion que você mandou e input novo) */}
                         <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
                             <h2 className="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3">
@@ -325,6 +387,18 @@ export default function ProductPage() {
                                     Perguntar
                                 </button>
                             </form>
+=======
+                {/* Coluna Direita - Sidebar (1 coluna, ocupa 2 linhas) */}
+                <div className="lg:col-span-1 lg:row-span-2">
+                    <SideBarDir
+                        valores={produto.valores}
+                        vendedor={produto.vendedor}
+                        emEstoque={produto.emEstoque}
+                        textoPreviaFrete={produto.textoPreviaFrete}
+                        onAddToCart={handleAddToCart}
+                    />
+                </div>
+>>>>>>> Stashed changes
 
                             {perguntasFrequentes.length > 0 ? (
                                 <ProdutoFAQ faqs={perguntasFrequentes} />
@@ -378,7 +452,10 @@ export default function ProductPage() {
         </main>
     );
 }
+<<<<<<< Updated upstream
 
 function isAvaliacoesResponse(value: unknown): value is AvaliacoesResponse {
     return typeof value === "object" && value !== null && "avaliacoes" in value;
 }
+=======
+>>>>>>> Stashed changes

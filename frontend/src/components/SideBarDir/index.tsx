@@ -10,6 +10,7 @@ interface SideBarDirProps {
   emEstoque: boolean;
   textoPreviaFrete: string;
   urlBannerPromocional?: string;
+  onAddToCart?: (quantidade: number) => void;
 }
 
 export function SideBarDir({
@@ -17,7 +18,8 @@ export function SideBarDir({
   vendedor,
   emEstoque,
   textoPreviaFrete,
-  urlBannerPromocional
+  urlBannerPromocional,
+  onAddToCart
 }: SideBarDirProps) {
   return (
     // A classe sticky faz ela ficar fixa ao rolar a página
@@ -37,6 +39,7 @@ export function SideBarDir({
         vendedor={vendedor}
         emEstoque={emEstoque}
         textoPreviaFrete={textoPreviaFrete}
+        onAddToCart={onAddToCart}
       />
       
     </aside>

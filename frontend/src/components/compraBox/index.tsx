@@ -1,15 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Minus, Truck, ShieldCheck } from "lucide-react";
+import Link from "next/link";
+import { Plus, Minus, Truck, ShieldCheck, X } from "lucide-react";
 import { Button } from "../ui/button";
 import { InformacoesPreco, InformacoesVendedor } from "@/types";
+import { getCartItems } from "@/lib/cart";
 
 interface CompraBoxProps {
     valores: InformacoesPreco;
     vendedor: InformacoesVendedor;
     emEstoque: boolean;
     textoPreviaFrete: string;
+    onAddToCart?: (quantidade: number) => void;
 }
 
 export function CompraBox({
@@ -17,8 +20,20 @@ export function CompraBox({
     vendedor,
     emEstoque,
     textoPreviaFrete,
+    onAddToCart,
 }: CompraBoxProps) {
     const [quantidade, setQuantidade] = useState(1);
+    const [modalAberto, setModalAberto] = useState(false);
+    const itensCarrinho = modalAberto ? getCartItems() : [];
+    const quantidadeTotal = itensCarrinho.reduce((total, item) => total + item.quantity, 0);
+    const subtotal = itensCarrinho.reduce((total, item) => total + item.price * item.quantity, 0);
+
+    function handleAddToCart() {
+        if (!emEstoque || !onAddToCart) return;
+
+        onAddToCart(quantidade);
+        setModalAberto(true);
+    }
 
     return (
         <div className="bg-white rounded-lg p-6 space-y-6 shadow-sm border border-gray-200">
@@ -82,12 +97,13 @@ export function CompraBox({
             <div className="border-t pt-4 space-y-2">
                 <Button
                     disabled={!emEstoque}
+                    onClick={handleAddToCart}
                     className={`w-full py-6 text-lg font-bold ${emEstoque
                             ? "bg-red-600 hover:bg-red-700 text-white"
                             : "bg-gray-300 text-gray-500 cursor-not-allowed"
                         }`}
                 >
-                    {emEstoque ? "Adicionar ao Carrinho" : "Fora de Estoque"}
+                    {emEstoque ? "Comprar" : "Fora de Estoque"}
                 </Button>
                 <Button
                     variant="outline"
@@ -141,6 +157,77 @@ export function CompraBox({
                     {emEstoque ? "Em Estoque" : "Indisponível"}
                 </div>
             </div>
+
+            {modalAberto && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+                    <div className="w-full max-w-md rounded-lg bg-white p-5 shadow-2xl">
+                        <div className="flex items-start justify-between gap-4">
+                            <div>
+                                <h2 className="text-lg font-bold text-gray-950">
+                                    Produto adicionado
+                                </h2>
+                                <p className="mt-1 text-sm text-gray-600">
+                                    Seu carrinho tem {quantidadeTotal} item{quantidadeTotal === 1 ? "" : "s"}.
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setModalAberto(false)}
+                                className="rounded-md p-1 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900"
+                                aria-label="Fechar"
+                            >
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+
+                        <div className="mt-5 max-h-64 space-y-3 overflow-auto">
+                            {itensCarrinho.map((item) => (
+                                <div key={item.id} className="flex gap-3 rounded-md border border-gray-200 p-3">
+                                    <img
+                                        src={item.image}
+                                        alt={item.name}
+                                        className="h-14 w-14 rounded bg-gray-50 object-contain"
+                                    />
+                                    <div className="min-w-0 flex-1">
+                                        <p className="truncate text-sm font-semibold text-gray-950">
+                                            {item.name}
+                                        </p>
+                                        <p className="text-xs text-gray-500">
+                                            Qtd. {item.quantity}
+                                        </p>
+                                    </div>
+                                    <p className="text-sm font-bold text-red-600">
+                                        R$ {(item.price * item.quantity).toFixed(2).replace(".", ",")}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="mt-4 flex items-center justify-between border-t border-gray-200 pt-4">
+                            <span className="text-sm font-semibold text-gray-700">Subtotal</span>
+                            <span className="text-base font-bold text-gray-950">
+                                R$ {subtotal.toFixed(2).replace(".", ",")}
+                            </span>
+                        </div>
+
+                        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                            <button
+                                type="button"
+                                onClick={() => setModalAberto(false)}
+                                className="rounded-md border border-gray-300 px-4 py-3 text-sm font-bold text-gray-800 transition hover:bg-gray-50"
+                            >
+                                Continuar comprando
+                            </button>
+                            <Link
+                                href="/cart"
+                                className="rounded-md bg-red-600 px-4 py-3 text-center text-sm font-bold text-white transition hover:bg-red-700"
+                            >
+                                Ir para o carrinho
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

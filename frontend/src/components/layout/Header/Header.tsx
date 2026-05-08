@@ -271,6 +271,12 @@ export default function Header() {
                             </div>
                         )}
                     </form>
+<<<<<<< Updated upstream
+=======
+                    <Link href="/cadastroVendedor">
+                        <button className="rounded-full bg-[#e8940a] px-5 py-2 text-sm font-bold text-white transition hover:bg-[#d4840a]">Anunciar</button>
+                    </Link>
+>>>>>>> Stashed changes
 
                     <div className="flex items-center gap-3 shrink-0">
                         <button
