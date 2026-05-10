@@ -8,12 +8,46 @@ import {
 } from "@/components/ui/carousel"
 import { Card, CardContent } from "@/components/ui/card"
 import { ProdutoResumido } from "@/types"
-import { Star } from "lucide-react"
+import { Star, Heart } from "lucide-react"
+import { useState, useEffect } from "react"
 
 export function ProdutoCarrossel({ title, produtos = [] }: { title: string, produtos?: ProdutoResumido[] }) {
     if (!produtos || produtos.length === 0) {
         return null;
     }
+
+    const [favoritos, setFavoritos] = useState<Set<string | number>>(new Set());
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('favoritos');
+            if (saved) {
+                try {
+                    setFavoritos(new Set(JSON.parse(saved)));
+                } catch {
+                    setFavoritos(new Set());
+                }
+            }
+        }
+    }, []);
+
+    const toggleFavorito = (e: React.MouseEvent, produtoId: string | number) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const novosFavoritos = new Set(favoritos);
+        if (novosFavoritos.has(produtoId)) {
+            novosFavoritos.delete(produtoId);
+        } else {
+            novosFavoritos.add(produtoId);
+        }
+        setFavoritos(novosFavoritos);
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('favoritos', JSON.stringify(Array.from(novosFavoritos)));
+            // Disparar evento customizado para sincronizar em toda a aba
+            window.dispatchEvent(new CustomEvent('favoritosChanged', { detail: Array.from(novosFavoritos) }));
+        }
+    };
 
     return (
         <section className="mt-12 w-full max-w-6xl mx-auto px-4 md:px-0">
@@ -34,6 +68,18 @@ export function ProdutoCarrossel({ title, produtos = [] }: { title: string, prod
                                                 {/* Imagem e Badge */}
                                                 <div className="relative mb-4 aspect-square bg-slate-50 rounded-lg flex items-center justify-center p-2">
                                                     <img src={produto.imagem} alt={produto.nome} className="w-full h-full object-contain mix-blend-multiply" />
+                                                    
+                                                    {/* Botão Favorito */}
+                                                    <button
+                                                        onClick={(e) => toggleFavorito(e, produto.id)}
+                                                        className="absolute top-2 left-2 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-slate-100 transition"
+                                                    >
+                                                        <Heart 
+                                                            size={18} 
+                                                            className={favoritos.has(produto.id) ? "fill-red-600 text-red-600" : "text-slate-400"}
+                                                        />
+                                                    </button>
+
                                                     {produto.porcentagemDesconto > 0 && (
                                                         <div className="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 rounded shadow-sm text-xs font-black">
                                                             -{produto.porcentagemDesconto}%

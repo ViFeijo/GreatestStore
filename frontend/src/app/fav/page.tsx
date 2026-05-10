@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Heart, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { addCartItem } from "@/lib/cart";
@@ -21,35 +22,86 @@ type FavItem = {
   image?: string;
 };
 
+type ProdutoFavoritoApi = {
+  id: string | number;
+  nome?: string;
+  marca_nome?: string | null;
+  vendedor_nome?: string | null;
+  marca?: string | null;
+  preco_final?: number | string | null;
+  preco_promocional?: number | string | null;
+  preco?: number | string | null;
+  imagem_url?: string | null;
+  imagens?: Array<{ url?: string | null }>;
+};
+
 export default function FavPage() {
   const [items, setItems] = useState<FavItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [erro, setErro] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     async function carregar() {
-      const token = typeof window !== 'undefined' ? window.localStorage.getItem('token') : null;
-      if (!token) {
-        setErro('Faça login para ver seus favoritos.');
-        setLoading(false);
-        return;
-      }
-
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/favoritos`, { headers: { Authorization: `Bearer ${token}` } });
-        if (!res.ok) throw new Error('Erro ao carregar favoritos');
-        const data = await res.json();
-        const mapped: FavItem[] = (data || []).map((p: { id: string | number; nome: string; marca_nome?: string | null; vendedor_nome?: string | null; preco_final?: number; preco?: number; imagem_url?: string | null }) => ({
-          id: String(p.id),
-          name: p.nome,
-          seller: p.marca_nome || p.vendedor_nome || '',
-          price: Number(p.preco_final ?? p.preco ?? 0),
-          image: p.imagem_url || 'https://via.placeholder.com/300x300?text=Sem+Imagem',
-        }));
-        setItems(mapped);
+        setLoading(true);
+        
+        // Carregar do localStorage
+        if (typeof window !== 'undefined') {
+          const savedFavs = localStorage.getItem('favoritos');
+          
+          if (!savedFavs || savedFavs === '[]') {
+            setItems([]);
+            setLoading(false);
+            return;
+          }
+
+          try {
+            const favIds = JSON.parse(savedFavs);
+            
+            if (!Array.isArray(favIds) || favIds.length === 0) {
+              setItems([]);
+              setLoading(false);
+              return;
+            }
+
+            // Buscar dados dos produtos
+            const productPromises = favIds.map(id =>
+              fetch(`${process.env.NEXT_PUBLIC_API_URL}/produtos/${id}`)
+                .then(r => {
+                  if (r.ok) return r.json();
+                  return null;
+                })
+                .catch(e => {
+                  console.error(`Erro ao carregar produto ${id}:`, e);
+                  return null;
+                })
+            );
+
+            const products = await Promise.all(productPromises);
+            const mapped: FavItem[] = products
+              .filter(p => p !== null)
+              .map((p: ProdutoFavoritoApi) => {
+                // Obter a primeira imagem do array de imagens
+                const imagemPrincipal = p.imagens && p.imagens.length > 0 
+                  ? p.imagens[0].url || 'https://via.placeholder.com/300x300?text=Sem+Imagem'
+                  : p.imagem_url || 'https://via.placeholder.com/300x300?text=Sem+Imagem';
+                
+                return {
+                  id: String(p.id),
+                  name: p.nome || 'Produto sem nome',
+                  seller: p.marca_nome || p.vendedor_nome || p.marca || 'Greatest Store',
+                  price: Number(p.preco_final ?? p.preco_promocional ?? p.preco ?? 0),
+                  image: imagemPrincipal,
+                };
+              });
+            
+            setItems(mapped);
+          } catch (err) {
+            console.error('Erro ao processar favoritos:', err);
+          }
+        }
       } catch (err) {
-        setErro(err instanceof Error ? err.message : 'Erro ao carregar favoritos');
+        console.error('Erro geral:', err);
       } finally {
         setLoading(false);
       }
@@ -62,14 +114,33 @@ export default function FavPage() {
 
   async function removeItem(id: string) {
     const token = typeof window !== 'undefined' ? window.localStorage.getItem('token') : null;
-    if (!token) return alert('Faça login para remover favorito.');
 
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/favoritos/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-      if (!res.ok) throw new Error('Erro ao remover favorito');
-      setItems((prev) => prev.filter((i) => i.id !== id));
-    } catch {
-      alert('Erro ao remover favorito');
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('favoritos');
+      if (saved) {
+        try {
+          const arr = JSON.parse(saved);
+          const updated = Array.isArray(arr)
+            ? arr.filter((fav: string | number) => String(fav) !== id)
+            : [];
+          localStorage.setItem('favoritos', JSON.stringify(updated));
+          window.dispatchEvent(new CustomEvent('favoritosChanged', { detail: updated }));
+        } catch {
+          localStorage.removeItem('favoritos');
+          window.dispatchEvent(new CustomEvent('favoritosChanged', { detail: [] }));
+        }
+      }
+    }
+
+    setItems((prev) => prev.filter((i) => i.id !== id));
+
+    if (token) {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/favoritos/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch((error) => {
+        console.error('Falha ao remover favorito na API:', error);
+      });
     }
   }
 
@@ -82,13 +153,7 @@ export default function FavPage() {
         <h1 className="text-2xl font-bold text-slate-950">Lista de Favoritos</h1>
       </div>
 
-      {erro ? (
-        <section className="rounded-lg border border-slate-200 bg-white p-10 text-center shadow-sm">
-          <h2 className="text-xl font-bold text-slate-950">{erro}</h2>
-          <p className="mt-2 text-sm text-slate-600">Faça login para gerenciar seus favoritos.</p>
-          <Link href="/login" className="mt-6 inline-flex rounded-md bg-[#7a1a2e] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#5e1224]">Entrar</Link>
-        </section>
-      ) : items.length === 0 ? (
+      {items.length === 0 ? (
         <section className="rounded-lg border border-slate-200 bg-white p-10 text-center shadow-sm">
           <h2 className="text-xl font-bold text-slate-950">Sua lista de favoritos está vazia</h2>
           <p className="mt-2 text-sm text-slate-600">Adicione produtos que você gostou para continuar.</p>
@@ -104,7 +169,14 @@ export default function FavPage() {
                 </button>
 
                 <div className="flex h-36 w-36 items-center justify-center rounded-md bg-slate-50">
-                  <img src={item.image} alt={item.name} className="max-h-32 max-w-32 object-contain" />
+                  <Image
+                    src={item.image || 'https://via.placeholder.com/300x300?text=Sem+Imagem'}
+                    alt={item.name}
+                    width={128}
+                    height={128}
+                    className="max-h-32 max-w-32 object-contain"
+                    unoptimized
+                  />
                 </div>
 
                 <div>

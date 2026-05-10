@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Star, Filter, Search } from "lucide-react";
+import { Star, Filter, Search, Heart } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { ProdutoResumido, ProdutoListagemApi, MarcaApi, CategoriaApi, SubcategoriaApi } from "@/types";
 
@@ -42,6 +42,8 @@ export function BuscaConteudo() {
     const termoParam = searchParams.get("q") || searchParams.get("termo") || "";
     const catParam = searchParams.get("categoria_id") || "";
     const subParam = searchParams.get("subcategoria_id") || "";
+    const apenasOfertaParam = searchParams.get("apenas_oferta") === "true";
+    const ordenarParam = searchParams.get("ordenar") as Ordenacao | null;
     
     const [marcasCatalogo, setMarcasCatalogo] = useState<MarcaApi[]>([]);
     const [categoriasCatalogo, setCategoriasCatalogo] = useState<CategoriaApi[]>([]);
@@ -56,13 +58,37 @@ export function BuscaConteudo() {
 
     const [priceRange, setPriceRange] = useState({ min: 0, max: DEFAULT_MAX_PRECO });
     const [maxPrecoHistorico, setMaxPrecoHistorico] = useState(DEFAULT_MAX_PRECO);
-    const [apenasOferta, setApenasOferta] = useState(false);
-    const [ordenar, setOrdenar] = useState<Ordenacao>("mais_recentes");
+    const [apenasOferta, setApenasOferta] = useState(apenasOfertaParam);
+    const [ordenar, setOrdenar] = useState<Ordenacao>(ordenarParam || "mais_recentes");
 
     const [filtrosAplicados, setFiltrosAplicados] = useState({ trigger: 0 });
     const [produtosApi, setProdutosApi] = useState<ProdutoListagemApi[]>([]);
     const [totalResultados, setTotalResultados] = useState(0);
     const [loading, setLoading] = useState(true);
+    const [favoritos, setFavoritos] = useState<Set<string | number>>(new Set());
+
+    // Carregar favoritos do localStorage ao montar
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('favoritos');
+            if (saved) {
+                try {
+                    setFavoritos(new Set(JSON.parse(saved)));
+                } catch {
+                    setFavoritos(new Set());
+                }
+            }
+        }
+    }, []);
+
+    // Sincronizar estado com URL quando mudar
+    useEffect(() => {
+        setApenasOferta(apenasOfertaParam);
+        setOrdenar(ordenarParam || "mais_recentes");
+        setCategorySelection(subParam ? `sub:${subParam}` : (catParam ? `cat:${catParam}` : ""));
+        // Aplicar filtros automaticamente quando URL mudar
+        setFiltrosAplicados(prev => ({ trigger: prev.trigger + 1 }));
+    }, [apenasOfertaParam, ordenarParam, catParam, subParam]);
 
     useEffect(() => {
         async function fetchCatalogos() {
@@ -151,6 +177,24 @@ export function BuscaConteudo() {
         setBrandSearchTerm("");
         setCategorySearchTerm("");
         router.push("/busca");
+    };
+
+    const toggleFavorito = (e: React.MouseEvent, produtoId: string | number) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const novosFavoritos = new Set(favoritos);
+        if (novosFavoritos.has(produtoId)) {
+            novosFavoritos.delete(produtoId);
+        } else {
+            novosFavoritos.add(produtoId);
+        }
+        setFavoritos(novosFavoritos);
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('favoritos', JSON.stringify(Array.from(novosFavoritos)));
+            // Disparar evento customizado para sincronizar em toda a aba
+            window.dispatchEvent(new CustomEvent('favoritosChanged', { detail: Array.from(novosFavoritos) }));
+        }
     };
 
     const marcasExibidas = marcasCatalogo.filter(m => m.nome.toLowerCase().includes(brandSearchTerm.toLowerCase()));
@@ -256,6 +300,18 @@ export function BuscaConteudo() {
                                 <Link key={item.id} href={`/produtos/${item.id}`} className="group block bg-white p-4 rounded-xl border border-slate-200 hover:shadow-lg transition-all hover:-translate-y-1">
                                     <div className="relative mb-4 aspect-square bg-slate-50 rounded-lg overflow-hidden flex items-center justify-center p-2">
                                         <img src={item.imagem} alt={item.nome} className="w-full h-full object-contain mix-blend-multiply transition-transform group-hover:scale-105" />
+                                        
+                                        {/* Botão Favorito */}
+                                        <button
+                                            onClick={(e) => toggleFavorito(e, item.id)}
+                                            className="absolute top-2 left-2 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-slate-100 transition"
+                                        >
+                                            <Heart 
+                                                size={18} 
+                                                className={favoritos.has(item.id) ? "fill-red-600 text-red-600" : "text-slate-400"}
+                                            />
+                                        </button>
+
                                         {item.porcentagemDesconto > 0 && (
                                             <span className="absolute top-2 right-2 bg-red-600 text-white text-xs font-black px-2 py-1 rounded shadow-sm">-{item.porcentagemDesconto}%</span>
                                         )}

@@ -40,10 +40,43 @@ export default function Header() {
     const [carregandoSugestoes, setCarregandoSugestoes] = useState(false);
 
     const [usuarioLogado, setUsuarioLogado] = useState<{ id: string | number; nome: string; role: string } | null>(null);
+    const [favoritosCount, setFavoritosCount] = useState(0);
 
     useEffect(() => {
         return () => {
             isMountedRef.current = false;
+        };
+    }, []);
+
+    // Carregar favoritos do localStorage
+    useEffect(() => {
+        const atualizarFavoritos = () => {
+            if (typeof window !== 'undefined') {
+                const saved = localStorage.getItem('favoritos');
+                if (saved) {
+                    try {
+                        const arr = JSON.parse(saved);
+                        setFavoritosCount(Array.isArray(arr) ? arr.length : 0);
+                    } catch {
+                        setFavoritosCount(0);
+                    }
+                } else {
+                    setFavoritosCount(0);
+                }
+            }
+        };
+
+        atualizarFavoritos();
+        
+        // Ouvir evento customizado
+        window.addEventListener('favoritosChanged', atualizarFavoritos as EventListener);
+        
+        // Monitorar mudanças no localStorage (para outras abas)
+        window.addEventListener('storage', atualizarFavoritos);
+        
+        return () => {
+            window.removeEventListener('favoritosChanged', atualizarFavoritos as EventListener);
+            window.removeEventListener('storage', atualizarFavoritos);
         };
     }, []);
 
@@ -295,6 +328,11 @@ export default function Header() {
 
                         <Link href="/fav" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/15 hover:text-[#e8c37d] relative">
                             <Heart className="h-6 w-6" strokeWidth={1.5} />
+                            {favoritosCount > 0 && (
+                                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs font-bold text-white">
+                                    {favoritosCount}
+                                </span>
+                            )}
                         </Link>
 
                         <Link href="/cart" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/15 hover:text-[#e8c37d] relative">
@@ -346,9 +384,6 @@ export default function Header() {
                                                 <div className="my-2 h-px bg-slate-100" />
                                             </>
                                         )}
-                                        <Link href="/pedidos" className="flex items-center gap-3 px-4 py-2 text-sm font-medium transition-colors hover:bg-slate-50">
-                                            Meus Pedidos
-                                        </Link>
                                         <button onClick={handleLogout} className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50">
                                             <LogOut size={16} /> Sair da conta
                                         </button>
@@ -412,7 +447,6 @@ export default function Header() {
                     )}
                 </div>
 
-                <span className="rounded-full bg-white/10 px-3 py-1.5 font-semibold">Navegue</span>
                 <Link href="/busca?ordenar=mais_recentes" className="rounded-full bg-white/10 px-3 py-1.5 font-medium transition hover:bg-white/15">
                     Novidades
                 </Link>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { SideBarDir } from "@/components/SideBarDir";
@@ -23,11 +24,23 @@ type ProdutoDetalheApiComBlocos = ProdutoDetalheApi & {
     descricao_blocos?: DescricaoBloco[];
 };
 
-type PerguntaApi = {
-    id?: string | number;
-    pergunta: string;
-    resposta?: string | null;
-};
+const perguntasMockS24: PerguntaFrequente[] = [
+    {
+        id: 's24-1',
+        pergunta: 'O Samsung S24 vem com carregador na caixa?',
+        resposta: 'Não. O aparelho é enviado apenas com cabo USB-C, seguindo o padrão atual da fabricante.',
+    },
+    {
+        id: 's24-2',
+        pergunta: 'Esse modelo é compatível com 5G?',
+        resposta: 'Sim, o Samsung S24 é compatível com redes 5G e Wi-Fi de alta velocidade.',
+    },
+    {
+        id: 's24-3',
+        pergunta: 'Tem garantia de fábrica?',
+        resposta: 'Sim, o produto conta com garantia de fábrica conforme as políticas da marca e da loja.',
+    },
+];
 
 type AvaliacoesResponse = {
     avaliacoes?: AvaliacaoApi[];
@@ -147,26 +160,20 @@ export default function ProductPage() {
                     fetch(`${api}/produtos/carrossel/random`).then(r => r.ok ? r.json() : []),
                     fetch(`${api}/produtos/subcategoria/${data.subcategoria_id}`).then(r => r.ok ? r.json() : []),
                     fetch(`${api}/avaliacoes/produto/${id}`).then(r => r.ok ? r.json() : { avaliacoes: [] }),
-                    fetch(`${api}/perguntas/produto/${id}`).then(r => r.ok ? r.json() : [])
                 ];
 
-                const [dadosAleatorios, dadosRelacionados, dadosAvals, dadosPerguntas] = await Promise.all(promessas);
+                const [dadosAleatorios, dadosRelacionados, dadosAvals] = await Promise.all(promessas);
 
                 if (Array.isArray(dadosAleatorios)) setAleatorios((dadosAleatorios as ProdutoListagemApiComImagem[]).map((d) => mapParaResumo(d)).filter(p => p.id !== id));
                 if (Array.isArray(dadosRelacionados)) setRelacionados((dadosRelacionados as ProdutoListagemApiComImagem[]).map((d) => mapParaResumo(d)).filter(p => p.id !== id));
 
                 if (isAvaliacoesResponse(dadosAvals) && Array.isArray(dadosAvals.avaliacoes)) setAvaliacoesUsuarios(dadosAvals.avaliacoes);
 
-                if (Array.isArray(dadosPerguntas)) {
-                    const faqsMapeadas = (dadosPerguntas as PerguntaApi[])
-                        .filter((p) => p.resposta)
-                        .map((p) => ({ id: String(p.id ?? Math.random()), pergunta: p.pergunta, resposta: p.resposta || "" }));
-                    setPerguntasFrequentes(faqsMapeadas);
-                }
-
-                const token = localStorage.getItem("token");
-                if (token) {
-                    fetch(`${api}/historico/registrar/${id}`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } }).catch(() => { });
+                const nomeProduto = data.nome?.toLowerCase() || '';
+                if (nomeProduto.includes('s24')) {
+                    setPerguntasFrequentes(perguntasMockS24);
+                } else {
+                    setPerguntasFrequentes([]);
                 }
 
             } catch (err: unknown) {
@@ -182,12 +189,17 @@ export default function ProductPage() {
 
     const handleAdicionarCarrinho = async (quantidade: number) => {
         if (produto) {
+            // Usar a primeira imagem do array, ou placeholder se não houver
+            const imagemPrincipal = produto.imagens && produto.imagens.length > 0 
+                ? produto.imagens[0] 
+                : "https://via.placeholder.com/600x600?text=Sem+Imagem";
+            
             addCartItem({
                 id: produto.id,
                 name: produto.nomeProduto,
                 seller: produto.vendedor.nome,
                 price: produto.valores.precoAtual,
-                image: produto.imagens?.[0] || "",
+                image: imagemPrincipal,
                 quantity: quantidade,
             });
         }
@@ -374,21 +386,6 @@ export default function ProductPage() {
                     {/* COLUNA DIREITA (Sidebar Compra & Info Vendedor) */}
                     <div className="lg:col-span-4 space-y-6">
                         <div className="sticky top-24">
-                            
-                            {/* AQUI ESTÁ A INJEÇÃO DO BANNER DO EVENTO */}
-                            {produto.urlBannerPromocional && (
-                                <Link 
-                                    href={produto.evento_id ? `/busca?evento_id=${produto.evento_id}` : `/loja/${produto.vendedor.id}`} 
-                                    className="block mb-6 overflow-hidden rounded-2xl shadow-sm border border-slate-200 group cursor-pointer"
-                                >
-                                    <img 
-                                        src={produto.urlBannerPromocional} 
-                                        alt="Campanha Especial" 
-                                        className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-500" 
-                                    />
-                                </Link>
-                            )}
-
                             {/* COMPRA BOX */}
                             <SideBarDir
                                 produtoId={produto.id}
@@ -406,7 +403,7 @@ export default function ProductPage() {
                                 <div className="flex items-center gap-4">
                                     <div className="w-14 h-14 bg-slate-100 rounded-full border border-slate-200 flex items-center justify-center overflow-hidden shrink-0">
                                         {produto.vendedor.fotoPerfil ? (
-                                            <img src={produto.vendedor.fotoPerfil} alt="Loja" className="w-full h-full object-cover" />
+                                            <Image src={produto.vendedor.fotoPerfil} alt="Loja" width={56} height={56} className="w-full h-full object-cover" unoptimized />
                                         ) : (
                                             <User size={24} className="text-slate-400" />
                                         )}

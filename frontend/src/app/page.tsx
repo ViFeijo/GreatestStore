@@ -41,7 +41,6 @@ export default function Home() {
     useEffect(() => {
         async function loadHomeData() {
             const api = process.env.NEXT_PUBLIC_API_URL;
-            const token = localStorage.getItem("token");
             
             try {
                 const promessas = [
@@ -51,13 +50,7 @@ export default function Home() {
                     fetch(`${api}/produtos/carrossel/random`).then(r => r.ok ? r.json() : [])
                 ];
 
-                if (token) {
-                    promessas.push(fetch(`${api}/historico`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.ok ? r.json() : []));
-                } else {
-                    promessas.push(Promise.resolve([]));
-                }
-
-                const [dadosEventos, dadosCats, dadosOfertas, dadosAleatorios, dadosHistorico] = await Promise.all(promessas);
+                const [dadosEventos, dadosCats, dadosOfertas, dadosAleatorios] = await Promise.all(promessas);
 
                 const mapProd = (p: any) => ({
                     id: p.id, nome: p.nome,
@@ -73,7 +66,7 @@ export default function Home() {
                 setCategorias(dadosCats);
                 setOfertas(dadosOfertas.map(mapProd));
                 setAleatorios(dadosAleatorios.map(mapProd));
-                setRecentes(dadosHistorico.map(mapProd));
+                setRecentes([]);
 
             } catch (error) {
                 console.error("Erro ao carregar a Home", error);
