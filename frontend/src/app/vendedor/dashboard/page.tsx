@@ -32,11 +32,45 @@ type ProdutoDashboard = {
     imagem: string;
 };
 
+type DashboardVendedorResponse = {
+    produtos?: ProdutoVendidoAPI[];
+    vendas_diarias?: Array<{
+        vendedor_id: string | number;
+        empresa: string;
+        data_venda: string;
+        numero_vendas_dia: number | string;
+        faturamento_dia: number | string;
+    }>;
+    resumo?: {
+        total_vendas: number | string;
+        faturamento_total: number | string;
+    };
+};
+
+function toNumber(value: unknown, fallback = 0) {
+    if (typeof value === "number") return Number.isFinite(value) ? value : fallback;
+
+    if (typeof value === "string") {
+        const normalized = value
+            .trim()
+            .replace(/\s/g, "")
+            .replace(/R\$/g, "")
+            .replace(/\.(?=\d{3}(?:\D|$))/g, "")
+            .replace(",", ".");
+
+        const parsed = Number.parseFloat(normalized);
+        return Number.isFinite(parsed) ? parsed : fallback;
+    }
+
+    return fallback;
+}
+
 export default function DashboardVendedor() {
     const [loading, setLoading] = useState(true);
     const [erro, setErro] = useState<string | null>(null);
     const [estatisticas, setEstatisticas] = useState({ faturamentoTotal: 0, totalVendas: 0 });
     const [produtos, setProdutos] = useState<ProdutoDashboard[]>([]);
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
     useEffect(() => {
         const controller = new AbortController();
@@ -46,24 +80,22 @@ export default function DashboardVendedor() {
                 const token = localStorage.getItem("token");
                 if (!token) throw new Error("Acesso negado. Faça login como vendedor.");
 
-                const resProdutos = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/produtos/meus`, {
+                const resProdutos = await fetch(`${apiBaseUrl}/vendedores/dashboard`, {
                     headers: { Authorization: `Bearer ${token}` },
                     signal: controller.signal
                 });
 
                 if (!resProdutos.ok) throw new Error("Não foi possível carregar os dados da loja.");
-                
-                const dadosAPI = await resProdutos.json() as ProdutoVendidoAPI[];
 
-                let faturamentoAgg = 0;
-                let vendasAgg = 0;
+                const payload = await resProdutos.json() as DashboardVendedorResponse | ProdutoVendidoAPI[];
+                const dadosAPI = Array.isArray(payload) ? payload : payload.produtos ?? [];
+                const resumo = Array.isArray(payload) ? null : payload.resumo ?? null;
 
                 const dadosFormatados: ProdutoDashboard[] = dadosAPI.map((p) => {
-                    const vendasProd = Number(p.total_unidades_vendidas) || 0;
-                    const fatProd = Number(p.faturamento_total_produto) || 0;
-
-                    faturamentoAgg += fatProd;
-                    vendasAgg += vendasProd;
+                    const vendasProd = toNumber(p.total_unidades_vendidas, 0);
+                    const precoProd = toNumber(p.preco, 0);
+                    const faturamentoApi = toNumber(p.faturamento_total_produto, NaN);
+                    const fatProd = Number.isFinite(faturamentoApi) ? faturamentoApi : vendasProd * precoProd;
 
                     return {
                         id: String(p.id),
@@ -73,13 +105,23 @@ export default function DashboardVendedor() {
                         vendas: vendasProd,
                         faturamento: fatProd,
                         estoque: Number(p.quantidade) || 0,
-                        preco: Number(p.preco) || 0,
+                        preco: precoProd,
                         imagem: p.imagem_url || "https://via.placeholder.com/150?text=Sem+Foto"
                     };
                 });
 
                 setProdutos(dadosFormatados);
-                setEstatisticas({ faturamentoTotal: faturamentoAgg, totalVendas: vendasAgg });
+                if (resumo) {
+                    setEstatisticas({
+                        faturamentoTotal: toNumber(resumo.faturamento_total, 0),
+                        totalVendas: toNumber(resumo.total_vendas, 0)
+                    });
+                } else {
+                    setEstatisticas({
+                        faturamentoTotal: dadosFormatados.reduce((acc, prod) => acc + prod.faturamento, 0),
+                        totalVendas: dadosFormatados.reduce((acc, prod) => acc + prod.vendas, 0)
+                    });
+                }
 
             } catch (err: unknown) {
                 if (!(err instanceof DOMException && err.name === "AbortError")) {
